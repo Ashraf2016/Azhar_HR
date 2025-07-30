@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import FiltrationData from "../components/FiltrationData";
-import { useIsLoggedIn } from "../contexts/isLoggedIn";
+import { useIsLoggedIn } from "../contexts/isLoggedinContext";
 
 const EmployeeListPage = () => {
   const { isLoggedIn, setIsLoggedIn } = useIsLoggedIn(false);
@@ -300,19 +300,35 @@ const EmployeeListPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(searchEmployeeId
               ? filteredEmployees
-              : filteredEmployees.filter((employee) => {
-                  if (!searchTerm) return true;
-                  return (
-                    (employee.name &&
-                      employee.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                    (employee.department &&
-                      employee.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                    (employee.position &&
-                      employee.position.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                    (employee.college &&
-                      employee.college.toLowerCase().includes(searchTerm.toLowerCase()))
-                  );
-                })
+              // : filteredEmployees.filter((employee) => {
+              //     if (!searchTerm) return true;
+              //     return (
+              //       (employee.name &&
+              //         employee.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              //       (employee.department &&
+              //         employee.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              //       (employee.position &&
+              //         employee.position.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              //       (employee.college &&
+              //         employee.college.toLowerCase().includes(searchTerm.toLowerCase()))
+              //     );
+              :filteredEmployees.filter((employee) => {
+                    const matchName =
+                      searchTerm &&
+                      (
+                        employee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        employee.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        employee.college?.toLowerCase().includes(searchTerm.toLowerCase())
+                      );
+
+                    const matchId = searchEmployeeId
+                      ? employee.university_file_number?.toString().includes(searchEmployeeId)
+                      : true;
+
+                    return (!searchTerm || matchName) && (!searchEmployeeId || matchId);
+                  })
+
             ).map((employee, idx) => (
               <EmployeeCard
                 key={employee.id || employee.member_id || employee.email || idx}

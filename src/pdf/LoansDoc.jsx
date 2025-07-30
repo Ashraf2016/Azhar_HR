@@ -16,7 +16,7 @@ Font.register({
   src: "https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvu3CBFQLaig.ttf",
 });
 
-console.log("MyDocument component is loaded!");
+console.log("LoansDocument component is loaded!");
 
 
 // 🔧 Styles
@@ -142,7 +142,7 @@ tableColNarrow: {
 },
 
   tableCellHeader: {
-  fontSize: 6,
+  fontSize: 8,
   textAlign: "center",
   fontWeight: "bold",
   color: "#1F2937",
@@ -150,7 +150,7 @@ tableColNarrow: {
 },
 
 tableCell: {
-  fontSize: 6,
+  fontSize: 8,
   textAlign: "center",
   color: "#1F2937",
   fontFamily: "NotoSansArabic",
@@ -235,7 +235,7 @@ function chunkArray(array, chunkSize) {
   return results;
 }
 
-const MyDocument = ({ pdfData }) => {
+const LoansDocument = ({ pdfData }) => {
 
   console.log("شش" ,pdfData)
   //علشان يحط التاريخ بصورة مناسبة 
@@ -255,10 +255,10 @@ const MyDocument = ({ pdfData }) => {
 };
 
 
-  const academicChunks = chunkArray(pdfData.academicQualifications, 15);
+  const academicChunks = chunkArray(pdfData.secondments|| [], 15);
   // Reverse career progression so most recent is first
   const careerChunks = chunkArray(
-    [...pdfData.careerProgression].sort(
+    [...pdfData.secondments].sort(
       (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
     ),
     15
@@ -313,14 +313,13 @@ return (
 
       {/* --- Section: Employee Info --- */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>بيان حالة</Text>
+        <Text style={styles.sectionTitle}> بيان حالة بالإعارات</Text>
         <View style={styles.employeeInfo}>
           {[
             ["الاسم", pdfData.name || ""],
-            ["النوع", pdfData.gender || " "],
+            ["النوع", pdfData.gender || ""],
             ["تاريخ الميلاد", formatDate(pdfData.birthdate)],
             ["جهة الميلاد", pdfData.birthCountry || ""],
-            ["العنوان", pdfData.address || ""],
             ["المحافظة", pdfData.governorate || ""],
             ["الرقم القومي", pdfData.nationalID || ""],
             ["تاريخ إصدار الرقم القومي", formatDate(pdfData.nationalIDDate)],
@@ -336,10 +335,16 @@ return (
 
       {/* --- Section: Academic Qualifications (first chunk) --- */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>المؤهلات العلمية</Text>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            {["م", "المؤهل", "الكلية", "اسم القسم", "الشهر", "السنة", "التقدير", "الجامعة"].map(
+            {["م",
+             "نوع الإعارة",
+              "الدولة المعار إليها",
+              "جهة الإعارة",
+                "تاريخ الإعارة",
+                 "حتى تاريخ",
+                  "عام التجديد",
+                   "تاريخ تسلم العمل"].map(
               (item, i) => (
                 <View
                   key={i}
@@ -355,13 +360,13 @@ return (
               <View style={styles.tableRow} key={i}>
                 {[
                   i + 1,
-                  row.degree || "",
-                  row.faculty || "",
-                  row.department || "",
-                  row.month || "",
-                  row.year || "",
-                  row.grade || "",
-                  row.university || "",
+                  row.deputationType || "",
+                  row.deputedCountry || "",
+                  row.universityName || "",
+                  row.deputationDate || "",
+                  row.deputationEndDate || "",
+                  row.renewalYear || "",
+                  row.deputationStartDate || "",
                 ].map((col, j) => (
                   <View
                     key={j}
@@ -385,64 +390,7 @@ return (
         </View>
       </View>
 
-      {/* --- Section: Career Progression (first chunk) --- */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>التدرج الوظيفي</Text>
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            {[
-              "م",
-              "الوظيفة",
-              "القسم",
-              "الكلية",
-              "اعتبار من تاريخ",
-              "حتى تاريخ",
-              "تاريخ استلام العمل",
-              "ملاحظات",
-            ].map((item, i) => (
-              <View
-                key={i}
-                style={i === 0 ? styles.tableColNarrow : styles.tableCol}
-              >
-                <Text style={styles.tableCellHeader}>{item}</Text>
-              </View>
-            ))}
-          </View>
-          {careerChunks[0] && careerChunks[0].length > 0 ? (
-            careerChunks[0].map((row, i) => (
-              <View style={styles.tableRow} key={i}>
-                {[
-                  i + 1,
-                  row.jobTitle,
-                  row.department,
-                  row.faculty,
-                  formatDate(row.dateOfOccupation),
-                  formatDate(row.expirationDateOfOccupation),
-                  formatDate(row.dateOfStartJob),
-                  
-                  row.notes || "",
-                ].map((col, j) => (
-                  <View
-                    key={j}
-                    style={j === 0 ? styles.tableColNarrow : styles.tableCol}
-                  >
-                    <Text style={styles.tableCell}>{col}</Text>
-                  </View>
-                ))}
-              </View>
-            ))
-          ) : (
-            <View
-              style={[
-                styles.tableRow,
-                { justifyContent: "center", alignItems: "center" },
-              ]}
-            >
-              <Text style={styles.tableCell}>لا توجد بيانات</Text>
-            </View>
-          )}
-        </View>
-      </View>
+     
       {/* --- Bottom Table: Current Degree --- */}
     <View style={styles.bottomTable}>
       <View style={styles.bottomTableRow}>
@@ -453,7 +401,7 @@ return (
         ))}
       </View>
       <View style={styles.bottomTableRow}>
-        {[pdfData.currentPosition.jobTitle || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
+        {[pdfData.currentPosition || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
           <View key={i} style={styles.bottomTableCol}>
             <Text style={styles.bottomTableCell}>{value}</Text>
           </View>
@@ -461,7 +409,7 @@ return (
       </View>
 </View>
         
-      <Text style={styles.footerText}>{" هذا البيان لن يُعتد به للتعاقد أو العمل بالداخل أو الخارج إلا بعد مرور ثلاث سنوات من تاريخ وظيفة مدرس"}</Text>
+      
       {/* الاختام */}
       {/* --- Signatures Row --- */}
       <View style={styles.signaturesRow}>
@@ -474,7 +422,7 @@ return (
         </View>
       </View>
 
-      <Text style={styles.footerTxt}>لا يجوز التصديق على هذا البيان لدى الخارجية</Text>
+      
       <Text style={styles.footer}>تحريراً في : {getDateNow()}</Text>
     </Page>
     
@@ -490,10 +438,16 @@ return (
         wrap={false}
       >
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>المؤهلات العلمية (تابع)</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              {["م", "المؤهل", "الكلية", "اسم القسم", "الشهر", "السنة", "التقدير", "الجامعة"].map(
+              {["م",
+             "نوع الإعارة",
+              "الدولة المعار إليها",
+              "جهة الإعارة",
+                "تاريخ الإعارة",
+                 "حتى تاريخ",
+                  "عام التجديد",
+                   "تاريخ تسلم العمل"].map(
                 (item, i) => (
                   <View
                     key={i}
@@ -508,13 +462,13 @@ return (
               <View style={styles.tableRow} key={i}>
                 {[
                   pageIndex * 15 + i + 1,
-                  row.degree || "",
-                  row.faculty || "",
-                  row.department || "",
-                  row.month || "",
-                  row.year || "",
-                  row.grade || "",
-                  row.university || "",
+                  row.deputationType || "",
+                  row.deputedCountry || "",
+                  row.universityName || "",
+                  row.deputationDate || "",
+                  row.deputationEndDate || "",
+                  row.renewalYear || "",
+                  deputationStartDate|| "",
                 ].map((col, j) => (
                   <View
                     key={j}
@@ -527,67 +481,7 @@ return (
             ))}
           </View>
         </View>
-      </Page>
-    ))}
-
-    {/* ------------------------------------ */}
-    {/* Pages N+ : Additional Career Progression Chunks */}
-    {/* ------------------------------------ */}
-    {careerChunks.slice(1).map((chunk, pageIndex) => (
-      <Page
-        key={`career-page-${pageIndex}`}
-        size="A4"
-        style={styles.page}
-        wrap={false}
-      >
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>التدرج الوظيفي (تابع)</Text>
-          <View style={styles.table}>
-            <View style={[styles.tableRow, styles.tableHeader]}>
-              {[
-              "م",
-              "الوظيفة",
-              "القسم",
-              "الكلية",
-              "اعتبار من تاريخ",
-              "حتى تاريخ",
-              "تاريخ استلام العمل",
-              "ملاحظات",
-            ].map(
-                (item, i) => (
-                  <View
-                    key={i}
-                    style={i === 0 ? styles.tableColNarrow : styles.tableCol}
-                  >
-                    <Text style={styles.tableCellHeader}>{item}</Text>
-                  </View>
-                )
-              )}
-            </View>
-            {chunk.map((row, i) => (
-              <View style={styles.tableRow} key={i}>
-                {[
-                  pageIndex * 15 + i + 1,
-                  row.jobTitle,
-                  row.department,
-                  row.faculty,
-                  formatDate(row.dateOfOccupation),
-                  formatDate(row.expirationDateOfOccupation),
-                  formatDate(row.dateOfStartJob),
-                  row.notes || "",
-                ].map((col, j) => (
-                  <View
-                    key={j}
-                    style={j === 0 ? styles.tableColNarrow : styles.tableCol}
-                  >
-                    <Text style={styles.tableCell}>{col}</Text>
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
-        </View>
-        {/* --- Bottom Table: Current Degree --- */}
+         {/* --- Bottom Table: Current Degree --- */}
 <View style={styles.bottomTable}>
   <View style={styles.bottomTableRow}>
     {["الدرجة الحالية", "القسم", "الكلية"].map((col, i) => (
@@ -596,16 +490,16 @@ return (
       </View>
     ))}
   </View>
-        <View style={styles.bottomTableRow}>
+        {/* <View style={styles.bottomTableRow}>
           {[pdfData.currentPosition.jobTitle || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
             <View key={i} style={styles.bottomTableCol}>
               <Text style={styles.bottomTableCell}>{value}</Text>
             </View>
           ))}
-        </View>
+        </View> */}
       </View>
 
-        <Text style={styles.footerText}>{"هذا البيان لن يُعتد به للتعاقد أو العمل بالداخل أو الخارج إلا بعد مرور ثلاث سنوات من تاريخ وظيفة مدرس"}</Text>
+        
         {/* الاختام */}
         {/* --- Signatures Row --- */}
         <View style={styles.signaturesRow}>
@@ -618,12 +512,16 @@ return (
           </View>
         </View>
 
-        <Text style={styles.footerTxt}>لا يجوز التصديق على هذا البيان لدى الخارجية</Text>
+        
         <Text style={styles.footer}>تحريراً في : {getDateNow()}</Text>
       </Page>
     ))}
+
+    
+       
+      
     
   </Document>
 );
 };
-export default MyDocument;
+export default LoansDocument;

@@ -4,8 +4,9 @@ import EmployeeListPage from "./pages/EmployeeListPage";
 import CreateUserPage from "./pages/CreateUserPage";
 import EmployeeProfilePage from "./pages/EmployeeProfilePage";
 import UserPermissions from "./pages/UserPermissions";
+import UserPermission from "./pages/UserPermission2";
 import PDFGenerator from "./PdfGenerator";
-import { IsLoggedInProvider } from "./contexts/isLoggedIn";
+import { IsLoggedInProvider } from "./contexts/isLoggedinContext";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
             <Route path="/pdf" element={<PDFGenerator />} />
             <Route path="/createUser" element={<CreateUserPage />} />
             <Route path="/permissions" element={<UserPermissions />} />
+            <Route path="/permission" element={<UserPermission />} />
           </Routes>
         </div>
       </IsLoggedInProvider>

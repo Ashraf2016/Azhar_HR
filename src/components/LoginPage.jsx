@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import { useIsLoggedIn } from "../contexts/isLoggedIn";
+import { useIsLoggedIn } from "../contexts/isLoggedinContext";
 
 const LoginPage = () => {
-  const { setIsLoggedIn } = useIsLoggedIn();
+  const { isLoggedIn, setIsLoggedIn } = useIsLoggedIn();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -13,30 +13,36 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // إذا المستخدم مسجل دخول بالفعل، نوجهه مباشرة
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      setIsLoggedIn(true);
+      navigate("/"); 
+    }
+  }, [isLoggedIn, navigate, setIsLoggedIn]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const response = await axios.post("https://university.roboeye-tec.com/login_system/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "https://university.roboeye-tec.com/login_system/login",
+        { username, password }
+      );
 
       const data = response.data;
       console.log(data);
 
       if (data.success) {
-        setIsLoggedIn(true);
         localStorage.setItem("token", data.token);
-        navigate("/"); // أو أي مسار حسب المطلوب
+        setIsLoggedIn(true); // تحديث الحالة فوراً
+        navigate("/");       // توجيه للصفحة الرئيسية
       } else {
         setError(data.message || "بيانات الدخول غير صحيحة");
       }
     } catch (err) {
-      // setError("فشل الاتصال بالخادم. تأكد من البيانات أو حاول لاحقًا.");
-      // console.error("Login error:", err);
       if (err.response && err.response.data && err.response.data.message) {
         setError("بيانات الدخول غير صحيحة");
       } else {
@@ -63,10 +69,14 @@ const LoginPage = () => {
       <div className="absolute inset-0 bg-black opacity-20"></div>
       <div className="text-center relative z-10 mx-auto px-6 max-w-md px-4 sm:px-6 md:px-8">
         <h1 className="text-3xl font-bold text-white mb-4">يرجى تسجيل الدخول</h1>
-        <p className="text-gray-200 mb-6">للوصول إلى دليل الموظفين، يرجى تسجيل الدخول أولاً.</p>
+        <p className="text-gray-200 mb-6">
+          للوصول إلى دليل الموظفين، يرجى تسجيل الدخول أولاً.
+        </p>
         <form onSubmit={handleLogin}>
           {error && (
-            <p className="text-red-500 bg-white/80 rounded-lg p-2 mb-3 text-sm">{error}</p>
+            <p className="text-red-500 bg-white/80 rounded-lg p-2 mb-3 text-sm">
+              {error}
+            </p>
           )}
           <div className="mb-4 flex items-center gap-1 flex-wrap sm:flex-nowrap">
             <input
@@ -77,7 +87,9 @@ const LoginPage = () => {
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-right shadow-sm hover:shadow-md"
               required
             />
-            <label className="w-30 text-right font-medium text-white">: اسم المستخدم</label>
+            <label className="w-30 text-right font-medium text-white">
+              : اسم المستخدم
+            </label>
           </div>
 
           <div className="mb-6 flex items-center gap-1 flex-wrap sm:flex-nowrap">
@@ -99,7 +111,9 @@ const LoginPage = () => {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <label className="w-30 text-right font-medium text-white">: كلمة المرور</label>
+            <label className="w-30 text-right font-medium text-white">
+              : كلمة المرور
+            </label>
           </div>
 
           <button

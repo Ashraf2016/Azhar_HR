@@ -1,12 +1,18 @@
-import { Search, User, Mail, Phone, MapPin, Calendar, ChevronRight } from "lucide-react";
+import { Search, User, Mail, Phone, MapPin, Calendar, ChevronRight , Settings } from "lucide-react";
 import person from "../assets/person.png";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import React from "react";
 import { pdf } from "@react-pdf/renderer";
 
+// animation for sidelbar
+import { motion } from "framer-motion";
+
 import { useEffect, useState } from "react";
 import { getData } from "../services/api";
 import MyDocument from "../pdf/document";
+import IaraatDocument from "../pdf/LoansDoc";
+import Sidebar from "../components/Sidebar"
+// Sidebar Component
 
 const EmployeeProfilePage = () => {
   const { employeeId } = useParams();
@@ -14,23 +20,31 @@ const EmployeeProfilePage = () => {
   const location = useLocation();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
+
+
+  // علشان أنشئ ملفات pdf في بيان الحالة 
   const [isGenerating, setIsGenerating] = React.useState(false);
-  // Helper function to prepare PDF data from employee information
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isGeneratingIarat, setIsGeneratingIarat] = useState(false);
+  const [isGeneratingEgaazat, setIsGeneratingEgaazat] = useState(false);
+  const [isGeneratingGaza2at, setIsGeneratingGaza2at] = useState(false);
+
+  //overlay
+  const [showSidebar, setShowSidebar] = React.useState(false);
+//dropdown 
+  const [isOpen, setIsOpen] = useState(false);
+
   const preparePDFData = (employeeData) => {
     if (!employeeData) return null;
-
     const latestCareer = getLatestCareerEntry(employeeData.careerProgression);
-
+    // console.log("ddd",employeeData)
     return {
-      // Employee basic information
       name: employeeData.name || "غير محدد",
       fileNumber: employeeData.fileNumber || employeeId || "غير محدد",
       nationalID: employeeData.nationalID || "غير محدد",
       birthdate: employeeData.birthdate ? formatDate(employeeData.birthdate) : "غير محدد",
       address: employeeData.address || "غير محدد",
       governorate: employeeData.governorate || "غير محدد",
-
-      // Current position information
       currentPosition: {
         jobTitle: latestCareer?.jobTitle || "غير محدد",
         department: latestCareer?.department || "غير محدد",
@@ -40,8 +54,6 @@ const EmployeeProfilePage = () => {
           : "غير محدد",
         notes: latestCareer?.notes || "",
       },
-
-      // Career progression
       careerProgression:
         employeeData.careerProgression?.map((career) => ({
           no: career.No,
@@ -53,8 +65,6 @@ const EmployeeProfilePage = () => {
           expirationDate: formatDate(career.expirationDateOfOccupation),
           notes: career.notes || "",
         })) || [],
-
-      // Previous position
       previousPosition: employeeData.previousPosition
         ? {
             title: employeeData.previousPosition.title,
@@ -63,51 +73,34 @@ const EmployeeProfilePage = () => {
             serviceType: employeeData.previousPosition.serviceType,
           }
         : null,
-
-      // Academic qualifications
       academicQualifications: employeeData.academicQualifications || [],
-
-      // PDF metadata
       generatedDate: new Date().toLocaleDateString("ar-SA"),
       generatedTime: new Date().toLocaleTimeString("ar-SA"),
     };
   };
 
+  //ده خاص بالتدرج الوظيفى لعضو هيئة التدريس
   const generatePDF = async () => {
     if (!employee) {
       alert("لا توجد بيانات موظف متاحة لإنشاء PDF");
       return;
     }
-
     setIsGenerating(true);
     try {
-      // Prepare employee data for PDF
+      console.log("ee",employee)
       const pdfData = preparePDFData(employee);
-
-      if (!pdfData) {
-        throw new Error("فشل في تحضير بيانات الموظف");
-      }
-
-      // Create PDF blob with employee data
+      if (!pdfData) throw new Error("فشل في تحضير بيانات الموظف");
       const blob = await pdf(<MyDocument pdfData={pdfData} />).toBlob();
-
-      // Create download link with employee name
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-
-      // Use employee name in filename
       const fileName = `${employee.name || "employee"}-career-report-${
         new Date().toISOString().split("T")[0]
       }.pdf`;
       link.download = fileName;
-
-      // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      // Clean up
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -116,6 +109,64 @@ const EmployeeProfilePage = () => {
       setIsGenerating(false);
     }
   };
+
+
+
+// //ده خاص بالإعارات الخاصة بعضو هيئة التدريس
+const generateIaratPDF = async () => {
+  setIsGeneratingIarat(true);
+
+  try {
+    const response = await fetch(`https://university.roboeye-tec.com/employee/deputation-statement/${employeeId}`);
+    if (!response.ok) throw new Error("فشل في الاتصال بالخادم");
+
+    const data = await response.json();
+    console.log("adad",data)
+
+    if (!data.deputationData || data.deputationData.length === 0) {
+      alert("لا توجد إعارات متاحة.");
+      return;
+    }
+
+    const pdfData = {
+      name: data?.name || "غير محدد",
+      fileNumber: data?.fileNumber ||  "غير محدد",
+      birthdate : data?.birthdate || "غير محدد",
+      secondments: data.deputationData.map((item, index) => ({
+        no: index + 1,
+        deputationDate: formatDate(item.deputationDate) ,
+        deputationEndDate:formatDate(item.deputationEndDate),
+        deputationStartDate : formatDate(item.deputationStartDate),
+        deputationType : item.deputationType,
+        deputedCountry :item.deputedCountry,
+        universityName : item.universityName,
+        renewalYear: item.renewalYear,
+        notes: item.notes || "",
+      })),
+      currentPosition : data?.currentPosition || "غير محدد",
+      hireDate : formatDate(data?.hireDate) || "غير محدد",
+      generatedDate: new Date().toLocaleDateString("ar-SA"),
+    };
+    const blob = await pdf(<IaraatDocument pdfData={pdfData} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${employee.name || "employee"}-iaraat-${new Date().toISOString().split("T")[0]}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error fetching or generating Iarat PDF:", error);
+    alert("حدث خطأ في جلب الإعارات أو إنشاء PDF.");
+  } finally {
+    setIsGeneratingIarat(false);
+  }
+};
+
+
+
 
   useEffect(() => {
     setLoading(true);
@@ -131,17 +182,14 @@ const EmployeeProfilePage = () => {
       .finally(() => setLoading(false));
   }, [employeeId]);
 
-  // Helper function to get the latest career progression entry (most recent first)
   const getLatestCareerEntry = (careerProgression) => {
     if (!careerProgression || careerProgression.length === 0) return null;
-    // Sort by date and get the latest entry (descending)
     const sortedEntries = [...careerProgression].sort(
       (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
     );
     return sortedEntries[0];
   };
 
-  // Helper function to format date in en-US
   const formatDate = (dateString) => {
     if (!dateString || dateString === "1899-11-30T00:00:00.000Z") {
       return "غير محدد";
@@ -156,50 +204,95 @@ const EmployeeProfilePage = () => {
   if (loading) return <div className="text-center py-12">جاري التحميل...</div>;
   if (!employee) return <div className="text-center py-12">لم يتم العثور على الموظف</div>;
 
-  // Get the latest career entry for current position
   const latestCareer = getLatestCareerEntry(employee.careerProgression);
 
   return (
+    
     <div className="min-h-screen bg-gray-50" dir="rtl">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center text-blue-600 hover:text-blue-700 mb-6 transition-colors"
-        >
-          <ChevronRight size={20} className="ml-1" />
-          العودة إلى قائمة الموظفين
-        </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        {/* Sidebar */}
+      <div className="hidden lg:block">
+        {/* <Sidebar onGeneratePDF={generatePDF} isGenerating={isGenerating} /> */}
+        <Sidebar
+          onGeneratePDF={generatePDF}
+          isGeneratingPDF={isGenerating}
+          onGenerateIarat={generateIaratPDF}
+          isGeneratingIarat={isGeneratingIarat}
+        />
 
-        {/* profile header */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8">
-            <div className="flex items-center">
-              <img
-                src={person}
-                alt={employee.name || "موظف"}
-                className="bg-white w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg"
-              />
-              <div className="mr-6 text-white">
-                <h1 className="text-3xl font-bold mb-2">{employee.name || "غير محدد"}</h1>
-                <p className="text-blue-100 text-lg">
-                  <span className="text-blue-200">المنصب: </span>
-                  {latestCareer?.jobTitle || "غير محدد"}
-                </p>
-                <p className="text-blue-200">
-                  <span className="text-blue-300">الكلية: </span>
-                  {latestCareer?.faculty || "غير محدد"}
-                </p>
-                <p className="text-blue-200">
-                  <span className="text-blue-300">القسم: </span>
-                  {latestCareer?.department || "غير محدد"}
-                </p>
+         
+
+      </div>
+
+      {/* sidebar in small screens */}
+      <button
+      className="lg:hidden p-2 text-gray-600  text-right"
+      onClick={() => setShowSidebar(true)}
+    >
+      <Settings className="w-6 h-6 cursor-pointer" />
+    </button>
+
+    {/* الـ Sidebar */}
+      {showSidebar && (
+        <div className="fixed top-[64px] inset-x-0 bg-black-200 bg-opacity-50 z-40 lg:hidden"> 
+        {/* top-[64px] = ارتفاع الـ nav */}
+        <div className="w-64 bg-white h-[calc(100%-64px)] p-4">
+          <button onClick={() => setShowSidebar(false)} className="cursor-pointer">✕</button>
+          {/* <Sidebar onGeneratePDF={generatePDF} isGenerating={isGenerating} /> */}
+          <Sidebar
+            onGeneratePDF={generatePDF}
+            isGeneratingPDF={isGenerating}
+            onGenerateIarat={generateIaratPDF}
+            isGeneratingIarat={isGeneratingIarat}
+          />
+
+
+        </div>
+      </div>
+
+      )}
+
+
+
+        {/* Main Content */}
+        <div className="lg:col-span-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center text-blue-600 hover:text-blue-700 mb-6 transition-colors"
+          >
+            <ChevronRight size={20} className="ml-1" />
+            العودة إلى قائمة الموظفين
+          </button>
+
+          {/* profile header */}
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8">
+              <div className="flex items-center">
+                <img
+                  src={person}
+                  alt={employee.name || "موظف"}
+                  className="bg-white w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg"
+                />
+                <div className="mr-6 text-white">
+                  <h1 className="text-3xl font-bold mb-2">{employee.name || "غير محدد"}</h1>
+                  <p className="text-blue-100 text-lg">
+                    <span className="text-blue-200">المنصب: </span>
+                    {latestCareer?.jobTitle || "غير محدد"}
+                  </p>
+                  <p className="text-blue-200">
+                    <span className="text-blue-300">الكلية: </span>
+                    {latestCareer?.faculty || "غير محدد"}
+                  </p>
+                  <p className="text-blue-200">
+                    <span className="text-blue-300">القسم: </span>
+                    {latestCareer?.department || "غير محدد"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* profile details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* contact info */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">المعلومات الشخصية</h2>
@@ -271,7 +364,7 @@ const EmployeeProfilePage = () => {
           </div>
         </div>
         {/* بيان الحاله */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        {/* <div className="mt-8 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">بيان الحالة</h2>
           <div className="flex flex-wrap gap-3">
             <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -285,15 +378,15 @@ const EmployeeProfilePage = () => {
               disabled={isGenerating}
               className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50"
             >
-              {isGenerating ? "جاري إنشاء PDF..." : "التدرج الوظيفي"}
+              {isGenerating ? : "التدرج الوظيفي"}
             </button>
             <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
               الجزاءات
             </button>
           </div>
-        </div>
+        </div> */}
         {/* القرارات */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+        {/* <div className="mt-8 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">القرارات</h2>
           <div className="flex flex-wrap gap-3">
             <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
@@ -306,7 +399,7 @@ const EmployeeProfilePage = () => {
               فصل
             </button>
           </div>
-        </div>
+        </div> */}
         {/* Career Progression */}
         {employee.careerProgression && employee.careerProgression.length > 0 && (
           <div className="mt-8 bg-white rounded-lg shadow-md p-6">
@@ -381,10 +474,10 @@ const EmployeeProfilePage = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default EmployeeProfilePage;
-

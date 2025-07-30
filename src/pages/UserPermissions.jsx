@@ -240,11 +240,16 @@ const UserPermissions = () => {
 
           <div className="text-center mt-6 flex justify-center gap-4">
             <button
-              type="submit"
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              حفظ الصلاحيات
+                type="submit"
+                disabled={!editingUserName}  // الزر يتعطل لو مفيش مستخدم محدد
+                className={`px-6 py-2 rounded-lg transition 
+                    ${editingUserName 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"}`}
+                >
+                حفظ الصلاحيات
             </button>
+
             <button
               type="button"
               onClick={handleCancel}
