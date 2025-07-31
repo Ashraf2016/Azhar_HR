@@ -4,13 +4,16 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import React from "react";
 import { pdf } from "@react-pdf/renderer";
 
-// animation for sidelbar
-import { motion } from "framer-motion";
+
 
 import { useEffect, useState } from "react";
 import { getData } from "../services/api";
 import MyDocument from "../pdf/document";
 import IaraatDocument from "../pdf/LoansDoc";
+import PunishmentsDocument from "../pdf/PunishmentsDocument";
+import EjazatDocument from "../pdf/EjazatDocument";
+
+
 import Sidebar from "../components/Sidebar"
 // Sidebar Component
 
@@ -20,31 +23,64 @@ const EmployeeProfilePage = () => {
   const location = useLocation();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  
 
   // علشان أنشئ ملفات pdf في بيان الحالة 
   const [isGenerating, setIsGenerating] = React.useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  // const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isGeneratingIarat, setIsGeneratingIarat] = useState(false);
   const [isGeneratingEgaazat, setIsGeneratingEgaazat] = useState(false);
   const [isGeneratingGaza2at, setIsGeneratingGaza2at] = useState(false);
 
   //overlay
   const [showSidebar, setShowSidebar] = React.useState(false);
-//dropdown 
-  const [isOpen, setIsOpen] = useState(false);
 
-  const preparePDFData = (employeeData) => {
-    if (!employeeData) return null;
-    const latestCareer = getLatestCareerEntry(employeeData.careerProgression);
-    // console.log("ddd",employeeData)
-    return {
-      name: employeeData.name || "غير محدد",
-      fileNumber: employeeData.fileNumber || employeeId || "غير محدد",
-      nationalID: employeeData.nationalID || "غير محدد",
-      birthdate: employeeData.birthdate ? formatDate(employeeData.birthdate) : "غير محدد",
-      address: employeeData.address || "غير محدد",
-      governorate: employeeData.governorate || "غير محدد",
+
+
+  const generatePDFWrapper = async (Component, pdfData, filename) => {
+  try {
+    const blob = await pdf(<Component pdfData={pdfData} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  } catch (error) {
+    console.error("PDF Generation Error:", error);
+    alert("حدث خطأ أثناء توليد الملف.");
+  }
+};
+
+
+  //ده خاص بالتدرج الوظيفى لعضو هيئة التدريس
+  const generatePDF = async () => {
+  setIsGenerating(true);
+
+  try {
+    const response = await fetch(`https://university.roboeye-tec.com/employee/status-statement/${employeeId}`);
+    if (!response.ok) throw new Error("فشل في الاتصال بالخادم");
+
+    const data = await response.json();
+    console.log("التدرج الوظيفى", data);
+
+    if (!data || data.length === 0) {
+      alert("لا توجد بيانات");
+      return;
+    }
+
+    const latestCareer = getLatestCareerEntry(data.careerProgression);
+    const pdfData = {
+      name: data.name || "غير محدد",
+      fileNumber: data.fileNumber || employeeId || "غير محدد",
+      nationalID: data.nationalID || "غير محدد",
+      birthdate: data.birthdate ? formatDate(data.birthdate) : "غير محدد",
+      address: data.address || "غير محدد",
+      governorate: data.governorate || "غير محدد",
       currentPosition: {
         jobTitle: latestCareer?.jobTitle || "غير محدد",
         department: latestCareer?.department || "غير محدد",
@@ -55,7 +91,7 @@ const EmployeeProfilePage = () => {
         notes: latestCareer?.notes || "",
       },
       careerProgression:
-        employeeData.careerProgression?.map((career) => ({
+        data.careerProgression?.map((career) => ({
           no: career.No,
           jobTitle: career.jobTitle,
           department: career.department,
@@ -65,50 +101,75 @@ const EmployeeProfilePage = () => {
           expirationDate: formatDate(career.expirationDateOfOccupation),
           notes: career.notes || "",
         })) || [],
-      previousPosition: employeeData.previousPosition
+      previousPosition: data.previousPosition
         ? {
-            title: employeeData.previousPosition.title,
-            startingDate: formatDate(employeeData.previousPosition.startingDate),
-            endDate: formatDate(employeeData.previousPosition.endDate),
-            serviceType: employeeData.previousPosition.serviceType,
+            title: data.previousPosition.title,
+            startingDate: formatDate(data.previousPosition.startingDate),
+            endDate: formatDate(data.previousPosition.endDate),
+            serviceType: data.previousPosition.serviceType,
           }
         : null,
-      academicQualifications: employeeData.academicQualifications || [],
+      academicQualifications: data.academicQualifications || [],
       generatedDate: new Date().toLocaleDateString("ar-SA"),
       generatedTime: new Date().toLocaleTimeString("ar-SA"),
     };
+
+    await generatePDFWrapper(
+      MyDocument,
+      pdfData,
+      `${data.name || "employee"}-career-${new Date().toISOString().replace(/[:.]/g, "-")}.pdf`
+    );
+
+  } catch (error) {
+    console.error("Error fetching or generating التدرج الوظيفى PDF:", error);
+    alert("حدث خطأ في جلب التدرج الوظيفى أو إنشاء PDF.");
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+
+//علشان اجيب ال current position
+  const getLatestCareerEntry = (careerProgression) => {
+    if (!careerProgression || careerProgression.length === 0) return null;
+    const sortedEntries = [...careerProgression].sort(
+      (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
+    );
+    return sortedEntries[0];
   };
 
-  //ده خاص بالتدرج الوظيفى لعضو هيئة التدريس
-  const generatePDF = async () => {
-    if (!employee) {
-      alert("لا توجد بيانات موظف متاحة لإنشاء PDF");
-      return;
-    }
-    setIsGenerating(true);
-    try {
-      console.log("ee",employee)
-      const pdfData = preparePDFData(employee);
-      if (!pdfData) throw new Error("فشل في تحضير بيانات الموظف");
-      const blob = await pdf(<MyDocument pdfData={pdfData} />).toBlob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      const fileName = `${employee.name || "employee"}-career-report-${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("حدث خطأ في إنشاء ملف PDF. يرجى المحاولة مرة أخرى.");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  
+  //   if (!employee) {
+  //     alert("لا توجد بيانات موظف متاحة لإنشاء PDF");
+  //     return;
+  //   }
+    
+  //   try {
+  //     console.log("ee",employee)
+  //     const pdfData = preparePDFData(employee);
+  //     if (!pdfData) throw new Error("فشل في تحضير بيانات الموظف");
+  //     const blob = await pdf(<MyDocument pdfData={pdfData} />).toBlob();
+  //     const url = URL.createObjectURL(blob);
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     const fileName = `${employee.name || "employee"}-career-report-${
+  //       new Date().toISOString().split("T")[0]
+  //     }.pdf`;
+  //     link.download = fileName;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //       setTimeout(() => {
+  //         URL.revokeObjectURL(url);
+  //       }, 1000); 
+
+  //   } catch (error) {
+  //     console.error("Error generating PDF:", error);
+  //     alert("حدث خطأ في إنشاء ملف PDF. يرجى المحاولة مرة أخرى.");
+  //   } finally {
+  //     setIsGenerating(false);
+  //   }
+  // };
 
 
 
@@ -121,7 +182,7 @@ const generateIaratPDF = async () => {
     if (!response.ok) throw new Error("فشل في الاتصال بالخادم");
 
     const data = await response.json();
-    console.log("adad",data)
+    console.log("الإعارات", employeeId);
 
     if (!data.deputationData || data.deputationData.length === 0) {
       alert("لا توجد إعارات متاحة.");
@@ -130,38 +191,175 @@ const generateIaratPDF = async () => {
 
     const pdfData = {
       name: data?.name || "غير محدد",
-      fileNumber: data?.fileNumber ||  "غير محدد",
-      birthdate : data?.birthdate || "غير محدد",
+      fileNumber: data?.fileNumber || "غير محدد",
+      birthdate: data?.birthdate || "غير محدد",
       secondments: data.deputationData.map((item, index) => ({
         no: index + 1,
-        deputationDate: formatDate(item.deputationDate) ,
-        deputationEndDate:formatDate(item.deputationEndDate),
-        deputationStartDate : formatDate(item.deputationStartDate),
-        deputationType : item.deputationType,
-        deputedCountry :item.deputedCountry,
-        universityName : item.universityName,
+        deputationDate: formatDate(item.deputationDate),
+        deputationEndDate: formatDate(item.deputationEndDate),
+        deputationStartDate: formatDate(item.deputationStartDate),
+        deputationType: item.deputationType,
+        deputedCountry: item.deputedCountry,
+        universityName: item.universityName,
         renewalYear: item.renewalYear,
         notes: item.notes || "",
       })),
-      currentPosition : data?.currentPosition || "غير محدد",
-      hireDate : formatDate(data?.hireDate) || "غير محدد",
+      currentPosition: data?.currentPosition || "غير محدد",
+      hireDate: formatDate(data?.hireDate) || "غير محدد",
       generatedDate: new Date().toLocaleDateString("ar-SA"),
     };
-    const blob = await pdf(<IaraatDocument pdfData={pdfData} />).toBlob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${employee.name || "employee"}-iaraat-${new Date().toISOString().split("T")[0]}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
 
+    await generatePDFWrapper(
+      IaraatDocument,
+      pdfData,
+      `${data.name || "employee"}-iaraat-${new Date().toISOString().replace(/[:.]/g, "-")}.pdf`
+    );
+    
   } catch (error) {
     console.error("Error fetching or generating Iarat PDF:", error);
     alert("حدث خطأ في جلب الإعارات أو إنشاء PDF.");
   } finally {
     setIsGeneratingIarat(false);
+  }
+};
+
+
+// خاص بالجزائات بتاعت الموظف
+const generatePunPDF = async () => {
+  setIsGeneratingGaza2at(true);
+
+  try {
+    const response = await fetch(`https://university.roboeye-tec.com/employee/punishments/${employeeId}`);
+    if (!response.ok) throw new Error("فشل في الاتصال بالخادم");
+
+    const data = await response.json();
+    console.log("الجزاءات:", employeeId);
+
+    if (!data || data.length === 0) {
+      alert("لا توجد جزاءات متاحة.");
+      return;
+    }
+
+    const pdfData = {
+      
+      punishments: data.map((item, index) => ({
+        no: index + 1,
+        name: item?.applicant_name|| "غير محدد",
+        execution_order: item.execution_order || "غير محدد",
+        execution_order_date: formatDate(item.execution_order_date) || "غير محدد",
+        execution_order_date: item.execution_order_date || "غير محدد",
+        fileNumber: item?.file_number || "غير محدد",
+        reasons : item?.reasons || "غير محدد",
+        notes: item.notes || "",
+      })),
+      
+      generatedDate: new Date().toLocaleDateString("ar-SA"),
+    };
+    await generatePDFWrapper(
+      PunishmentsDocument,
+      pdfData,
+      `${data.name || "employee"}-punishments-${new Date().toISOString().replace(/[:.]/g, "-")}.pdf`
+    );
+//       const blob = await pdf(
+//         <React.Suspense fallback={<div>جاري التحميل...</div>}>
+//           <PunishmentsDocument pdfData={pdfData} />
+//         </React.Suspense>
+//       ).toBlob();
+
+//     // const blob = await pdf(<PunishmentsDocument pdfData={pdfData} />).toBlob();
+//     const url = URL.createObjectURL(blob);
+//     const link = document.createElement("a");
+//     link.href = url;
+//     const now = new Date().toISOString().replace(/[:.]/g, "-");  // آمن لاسم الملف
+
+//     link.download = `${data.name || "employee"}-punishments-${now}.pdf`;
+
+//     // link.download = `${data.name || "employee"}-punishments-${new Date().toISOString().split("T")[0]}.pdf`;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// setTimeout(() => {
+//   URL.revokeObjectURL(url);
+// }, 1000); // أعطي مهلة بسيطة
+
+
+  } catch (error) {
+    console.error("Error fetching or generating Punishments PDF:", error);
+    alert("حدث خطأ في جلب الجزاءات أو إنشاء PDF.");
+  } finally {
+    setIsGeneratingGaza2at(false);
+  }
+};
+
+
+// خاص باجازات الموظف
+const generateEgazatPDF = async () => {
+  setIsGeneratingEgaazat(true);
+
+  try {
+    const response = await fetch(`https://university.roboeye-tec.com/employee/holidays/${employeeId}`);
+    if (!response.ok) throw new Error("فشل في الاتصال بالخادم");
+
+    const data = await response.json();
+    console.log("الاجازات", employeeId);
+
+    if (!data || data.length === 0) {
+      alert("لا توجد اجازات متاحة.");
+      return;
+    }
+
+    const pdfData = {
+      name: data?.name|| "غير محدد",
+      Egazat: data.holidays.map((item, index) => ({
+        no: index + 1,
+        grant_type: item.grant_type || "غير محدد",
+        leave_type: item.leave_type || "غير محدد",
+        from_date: formatDate(item.from_date) || "غير محدد",
+        to_date: formatDate(item.to_date) || "غير محدد",
+        execution_order_date : formatDate(item.execution_order_date)||"غير محدد",
+        fileNumber: item?.university_file_number || "غير محدد",
+        execution_order_number : item?.execution_order_number || "غير محدد",
+        duration_days : item.duration_days || "غير محدد",
+        travel_status : item.travel_status || "غير محدد",
+        notes: item.notes || "",
+      })),
+      
+      generatedDate: new Date().toLocaleDateString("ar-SA"),
+    };
+
+    await generatePDFWrapper(
+      EjazatDocument,
+      pdfData,
+      `${data.name || "employee"}-Ejazat-${new Date().toISOString().replace(/[:.]/g, "-")}.pdf`
+    );
+    // const blob = await pdf(
+    //   <React.Suspense fallback={<div>جاري التحميل...</div>}>
+    //     <EjazatDocument pdfData={pdfData} />
+    //   </React.Suspense>
+    // ).toBlob();
+
+    // // const blob = await pdf(<EjazatDocument pdfData={pdfData} />).toBlob();
+    // const url = URL.createObjectURL(blob);
+    // const link = document.createElement("a");
+    // link.href = url;
+    // // link.download = `${data.name || "employee"}-Egazat-${new Date().toISOString().split("T")[0]}.pdf`;
+    // const now = new Date().toISOString().replace(/[:.]/g, "-");  
+
+    // link.download = `${data.name || "employee"}-Egazat-${now}.pdf`;
+
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
+    // setTimeout(() => {
+    //   URL.revokeObjectURL(url);
+    // }, 1000); // أعطي مهلة بسيطة
+
+
+  } catch (error) {
+    console.error("Error fetching or generating Ejazat PDF:", error);
+    alert("حدث خطأ في جلب الاجازات أو إنشاء PDF.");
+  } finally {
+    setIsGeneratingEgaazat(false);
   }
 };
 
@@ -182,13 +380,8 @@ const generateIaratPDF = async () => {
       .finally(() => setLoading(false));
   }, [employeeId]);
 
-  const getLatestCareerEntry = (careerProgression) => {
-    if (!careerProgression || careerProgression.length === 0) return null;
-    const sortedEntries = [...careerProgression].sort(
-      (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
-    );
-    return sortedEntries[0];
-  };
+
+  
 
   const formatDate = (dateString) => {
     if (!dateString || dateString === "1899-11-30T00:00:00.000Z") {
@@ -216,9 +409,13 @@ const generateIaratPDF = async () => {
         {/* <Sidebar onGeneratePDF={generatePDF} isGenerating={isGenerating} /> */}
         <Sidebar
           onGeneratePDF={generatePDF}
-          isGeneratingPDF={isGenerating}
+          isGenerating={isGenerating}
           onGenerateIarat={generateIaratPDF}
           isGeneratingIarat={isGeneratingIarat}
+          onGenerateGazaat={generatePunPDF}
+          isGeneratingGaza2at={isGeneratingGaza2at}
+          onGenerateEgaazat={generateEgazatPDF}
+          isGeneratingEgaazat={isGeneratingEgaazat}
         />
 
          
@@ -242,9 +439,13 @@ const generateIaratPDF = async () => {
           {/* <Sidebar onGeneratePDF={generatePDF} isGenerating={isGenerating} /> */}
           <Sidebar
             onGeneratePDF={generatePDF}
-            isGeneratingPDF={isGenerating}
+            isGenerating={isGenerating}
             onGenerateIarat={generateIaratPDF}
             isGeneratingIarat={isGeneratingIarat}
+            onGenerateGazaat={generatePunPDF}
+            isGeneratingGaza2at={isGeneratingGaza2at}
+            onGenerateEgaazat={generateEgazatPDF}
+            isGeneratingEgaazat={isGeneratingEgaazat}
           />
 
 

@@ -16,7 +16,7 @@ Font.register({
   src: "https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvu3CBFQLaig.ttf",
 });
 
-console.log("LoansDocument component is loaded!");
+console.log("MyDocument gazaat component is loaded!");
 
 
 // 🔧 Styles
@@ -142,7 +142,7 @@ tableColNarrow: {
 },
 
   tableCellHeader: {
-  fontSize: 8,
+  fontSize: 6,
   textAlign: "center",
   fontWeight: "bold",
   color: "#1F2937",
@@ -150,7 +150,7 @@ tableColNarrow: {
 },
 
 tableCell: {
-  fontSize: 8,
+  fontSize: 6,
   textAlign: "center",
   color: "#1F2937",
   fontFamily: "NotoSansArabic",
@@ -235,7 +235,7 @@ function chunkArray(array, chunkSize) {
   return results;
 }
 
-const LoansDocument = ({ pdfData }) => {
+const PunishmentsDocument = ({ pdfData }) => {
 
   console.log("شش" ,pdfData)
   //علشان يحط التاريخ بصورة مناسبة 
@@ -255,11 +255,11 @@ const LoansDocument = ({ pdfData }) => {
 };
 
 
-  const academicChunks = chunkArray(pdfData.secondments|| [], 15);
+  const academicChunks = chunkArray(pdfData.punishments, 15);
   // Reverse career progression so most recent is first
   const careerChunks = chunkArray(
-    [...pdfData.secondments].sort(
-      (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
+    [...pdfData.punishments].sort(
+      (a, b) => new Date(b.execution_order_date) - new Date(a.execution_order_date)
     ),
     15
   );
@@ -313,17 +313,12 @@ return (
 
       {/* --- Section: Employee Info --- */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}> بيان حالة بالإعارات</Text>
+        {console.log(pdfData.punishments[0].name)}
+        <Text style={styles.sectionTitle}>بيان بالجزاءات</Text>
         <View style={styles.employeeInfo}>
           {[
-            ["الاسم", pdfData.name || ""],
-            ["النوع", pdfData.gender || ""],
-            ["تاريخ الميلاد", formatDate(pdfData.birthdate)],
-            ["جهة الميلاد", pdfData.birthCountry || ""],
-            ["المحافظة", pdfData.governorate || ""],
-            ["الرقم القومي", pdfData.nationalID || ""],
-            ["تاريخ إصدار الرقم القومي", formatDate(pdfData.nationalIDDate)],
-            ["رقم الملف", pdfData.fileNumber || ""],
+            ["الاسم", pdfData.punishments[0].name || ""],
+            ["رقم الملف", pdfData.punishments[0].fileNumber || ""],
           ].map(([label, value], i) => (
             <View style={styles.infoItem} key={i}>
               <Text style={styles.infoLabel}>: {label}</Text>
@@ -333,40 +328,36 @@ return (
         </View>
       </View>
 
-      {/* --- Section: Academic Qualifications (first chunk) --- */}
+      
+
+      {/* --- Section: جزاءات (first chunk) --- */}
       <View style={styles.section}>
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            {["م",
-             "نوع الإعارة",
-              "الدولة المعار إليها",
-              "جهة الإعارة",
-                "تاريخ الإعارة",
-                 "حتى تاريخ",
-                  "عام التجديد",
-                   "تاريخ تسلم العمل"].map(
-              (item, i) => (
-                <View
-                  key={i}
-                  style={i === 0 ? styles.tableColNarrow : styles.tableCol}
-                >
-                  <Text style={styles.tableCellHeader}>{item}</Text>
-                </View>
-              )
-            )}
+            {[
+            "م",
+            "أمر التنفيذ",
+            "سبب الجزاء",
+            "تاريخ أمر التنفيذ",
+            "ملاحظات",
+          ].map((item, i) => (
+              <View
+                key={i}
+                style={i === 0 ? styles.tableColNarrow : styles.tableCol}
+              >
+                <Text style={styles.tableCellHeader}>{item}</Text>
+              </View>
+            ))}
           </View>
-          {academicChunks[0] && academicChunks[0].length > 0 ? (
-            academicChunks[0].map((row, i) => (
+          {careerChunks[0] && careerChunks[0].length > 0 ? (
+            careerChunks[0].map((row, i) => (
               <View style={styles.tableRow} key={i}>
                 {[
                   i + 1,
-                  row.deputationType || "",
-                  row.deputedCountry || "",
-                  row.universityName || "",
-                  formatDate(row.deputationDate) || "",
-                  formatDate(row.deputationEndDate) || "",
-                  row.renewalYear || "",
-                  formatDate(row.deputationStartDate) || "",
+                  row.execution_order,
+                  row.reasons,
+                  formatDate(row.execution_order_date),
+                  row.notes || "",
                 ].map((col, j) => (
                   <View
                     key={j}
@@ -389,27 +380,8 @@ return (
           )}
         </View>
       </View>
-
      
-      {/* --- Bottom Table: Current Degree --- */}
-    <View style={styles.bottomTable}>
-      <View style={styles.bottomTableRow}>
-        {["الدرجة الحالية", "القسم", "الكلية"].map((col, i) => (
-          <View key={i} style={styles.bottomTableCol}>
-            <Text style={styles.bottomTableCell}>{col}</Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.bottomTableRow}>
-        {[pdfData.currentPosition || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
-          <View key={i} style={styles.bottomTableCol}>
-            <Text style={styles.bottomTableCell}>{value}</Text>
-          </View>
-        ))}
-      </View>
-</View>
         
-      
       {/* الاختام */}
       {/* --- Signatures Row --- */}
       <View style={styles.signaturesRow}>
@@ -422,32 +394,33 @@ return (
         </View>
       </View>
 
-      
+    
       <Text style={styles.footer}>تحريراً في : {getDateNow()}</Text>
     </Page>
     
     
+
     {/* ------------------------------------ */}
-    {/* Pages 2+ : Additional Academic Qualification Chunks */}
+    {/* Pages N+ : Additional Career Progression Chunks */}
     {/* ------------------------------------ */}
-    {academicChunks.slice(1).map((chunk, pageIndex) => (
+    {careerChunks.slice(1).map((chunk, pageIndex) => (
       <Page
-        key={`academic-page-${pageIndex}`}
+        key={`career-page-${pageIndex}`}
         size="A4"
         style={styles.page}
         wrap={false}
       >
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>الجزاءات (تابع)</Text>
           <View style={styles.table}>
             <View style={[styles.tableRow, styles.tableHeader]}>
-              {["م",
-             "نوع الإعارة",
-              "الدولة المعار إليها",
-              "جهة الإعارة",
-                "تاريخ الإعارة",
-                 "حتى تاريخ",
-                  "عام التجديد",
-                   "تاريخ تسلم العمل"].map(
+              {[
+            "م",
+            "أمر التنفيذ",
+            "سبب الجزاء",
+            "تاريخ أمر التنفيذ",
+            "ملاحظات",
+          ].map(
                 (item, i) => (
                   <View
                     key={i}
@@ -460,15 +433,13 @@ return (
             </View>
             {chunk.map((row, i) => (
               <View style={styles.tableRow} key={i}>
-                {[
-                  pageIndex * 15 + i + 1,
-                  row.deputationType || "",
-                  row.deputedCountry || "",
-                  row.universityName || "",
-                  formatDate(row.deputationDate) || "",
-                  formatDate(row.deputationEndDate) || "",
-                  row.renewalYear || "",
-                  formatDate(row.deputationStartDate)|| "",
+                {
+                [
+                  i + 1,
+                  row.execution_order,
+                  row.reasons,
+                  formatDate(row.execution_order_date),
+                  row.notes || "",
                 ].map((col, j) => (
                   <View
                     key={j}
@@ -481,23 +452,8 @@ return (
             ))}
           </View>
         </View>
-         {/* --- Bottom Table: Current Degree --- */}
-<View style={styles.bottomTable}>
-  <View style={styles.bottomTableRow}>
-    {["الدرجة الحالية", "القسم", "الكلية"].map((col, i) => (
-      <View key={i} style={styles.bottomTableCol}>
-        <Text style={styles.bottomTableCell}>{col}</Text>
-      </View>
-    ))}
-  </View>
-        {/* <View style={styles.bottomTableRow}>
-          {[pdfData.currentPosition.jobTitle || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
-            <View key={i} style={styles.bottomTableCol}>
-              <Text style={styles.bottomTableCell}>{value}</Text>
-            </View>
-          ))}
-        </View> */}
-      </View>
+       
+
 
         
         {/* الاختام */}
@@ -512,16 +468,12 @@ return (
           </View>
         </View>
 
-        
+       
         <Text style={styles.footer}>تحريراً في : {getDateNow()}</Text>
       </Page>
     ))}
-
-    
-       
-      
     
   </Document>
 );
 };
-export default LoansDocument;
+export default PunishmentsDocument;

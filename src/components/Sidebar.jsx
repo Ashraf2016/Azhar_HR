@@ -62,13 +62,14 @@ import { FileText, Calendar, Briefcase, AlertCircle } from "lucide-react";
 
 const Sidebar = ({
   onGeneratePDF,
-  isGeneratingPDF,
+  isGenerating,
   onGenerateIarat,
   isGeneratingIarat,
+  onGenerateGazaat,
+  isGeneratingGaza2at,
   onGenerateEgaazat,
   isGeneratingEgaazat,
-  onGenerateGaza2at,
-  isGeneratingGaza2at,
+  
 }) => {
   return (
     <aside className="w-64 bg-transparent p-4 flex flex-col gap-2">
@@ -99,16 +100,16 @@ const Sidebar = ({
           {/* زر التدرج الوظيفي */}
           <button
             onClick={onGeneratePDF}
-            disabled={isGeneratingPDF}
+            disabled={isGenerating}
             className="flex items-center gap-2 bg-yellow-600 my-3 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50"
           >
             <FileText className="w-5 h-5" />
-            {isGeneratingPDF ? "جاري إنشاء PDF..." : "التدرج الوظيفي"}
+            {isGenerating ? "جاري إنشاء PDF..." : "التدرج الوظيفي"}
           </button>
 
           {/* زر الجزاءات */}
           <button
-            onClick={onGenerateGaza2at}
+            onClick={onGenerateGazaat}
             disabled={isGeneratingGaza2at}
             className="flex items-center gap-2 bg-gray-600 my-3 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
