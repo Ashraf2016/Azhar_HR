@@ -1,0 +1,446 @@
+{
+  "info": {
+    "name": "Azhar HR System API",
+    "description": "Complete API collection for Azhar University HR Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with username and password to get JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"New User\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"oldpassword123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            },
+            "description": "Change user password (requires authentication)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for login, registration, and password management"
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "Get All Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "all"]
+            },
+            "description": "Get all active employees (excluding those on leave, suspension, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/search/12345",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "search", "12345"]
+            },
+            "description": "Search for a specific employee by their university file number"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Employee Status Statement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employee/status-statement/12345",
+              "host": ["{{baseUrl}}"],
+              "path": ["employee", "status-statement", "12345"]
+            },
+            "description": "Get detailed status statement for an employee including career progression"
+          },
+          "response": []
+        }
+      ],
+      "description": "Employee management endpoints"
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs (All)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "list"]
+            },
+            "description": "Get all jobs with latest positions for each employee"
+          },
+          "response": []
+        },
+        {
+          "name": "List Jobs with Faculty Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/list?fac=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "list"],
+              "query": [
+                {
+                  "key": "fac",
+                  "value": "1",
+                  "description": "Faculty code filter"
+                }
+              ]
+            },
+            "description": "Get jobs filtered by faculty code"
+          },
+          "response": []
+        },
+        {
+          "name": "List Jobs with Department Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/list?dept=101",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "list"],
+              "query": [
+                {
+                  "key": "dept",
+                  "value": "101",
+                  "description": "Department code filter"
+                }
+              ]
+            },
+            "description": "Get jobs filtered by department code"
+          },
+          "response": []
+        },
+        {
+          "name": "List Jobs with Academic Degree Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/list?degree=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "list"],
+              "query": [
+                {
+                  "key": "degree",
+                  "value": "1",
+                  "description": "Academic degree/job code filter"
+                }
+              ]
+            },
+            "description": "Get jobs filtered by academic degree/job code"
+          },
+          "response": []
+        },
+        {
+          "name": "List Jobs with Multiple Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/list?fac=1&dept=101&degree=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "list"],
+              "query": [
+                {
+                  "key": "fac",
+                  "value": "1",
+                  "description": "Faculty code filter"
+                },
+                {
+                  "key": "dept",
+                  "value": "101",
+                  "description": "Department code filter"
+                },
+                {
+                  "key": "degree",
+                  "value": "1",
+                  "description": "Academic degree filter"
+                }
+              ]
+            },
+            "description": "Get jobs with multiple filters applied"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Jobs by Department",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/department/101",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "department", "101"]
+            },
+            "description": "Get all jobs for a specific department"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Jobs by Faculty",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/faculty/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "faculty", "1"]
+            },
+            "description": "Get all jobs for a specific faculty"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Jobs by Academic Degree",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/academic-degree/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "academic-degree", "1"]
+            },
+            "description": "Get all jobs for a specific academic degree"
+          },
+          "response": []
+        }
+      ],
+      "description": "Job management and filtering endpoints"
+    },
+    {
+      "name": "Structure",
+      "item": [
+        {
+          "name": "Get All Departments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/structure/department",
+              "host": ["{{baseUrl}}"],
+              "path": ["structure", "department"]
+            },
+            "description": "Get all departments in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Departments by Faculty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/structure/department",
+              "host": ["{{baseUrl}}"],
+              "path": ["structure", "department"]
+            },
+            "description": "Get departments filtered by faculty code"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Faculties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/structure/faculty",
+              "host": ["{{baseUrl}}"],
+              "path": ["structure", "faculty"]
+            },
+            "description": "Get all faculties in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Academic Degrees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/structure/academic-degree",
+              "host": ["{{baseUrl}}"],
+              "path": ["structure", "academic-degree"]
+            },
+            "description": "Get all academic degrees/job codes in the system"
+          },
+          "response": []
+        }
+      ],
+      "description": "Organizational structure endpoints (departments, faculties, academic degrees)"
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "all"]
+            },
+            "description": "Get all users in the system"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": {\n    \"admin\": true,\n    \"hr_manager\": false,\n    \"viewer\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            },
+            "description": "Update roles for a specific user by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            },
+            "description": "Delete a user by ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints for administrators"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set auth token from login response",
+          "if (pm.response && pm.response.json() && pm.response.json().token) {",
+          "    pm.collectionVariables.set('authToken', pm.response.json().token);",
+          "}"
+        ]
+      }
+    }
+  ]
+}
