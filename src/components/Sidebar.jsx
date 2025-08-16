@@ -59,8 +59,12 @@
 
 
 import { FileText, Calendar, Briefcase, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom"; 
 
 const Sidebar = ({
+  employeeId,
+  employeeName,
+  currentRank,
   onGeneratePDF,
   isGenerating,
   onGenerateIarat,
@@ -71,6 +75,39 @@ const Sidebar = ({
   isGeneratingEgaazat,
   
 }) => {
+
+  const navigate = useNavigate(); // ✅ تفعيل التنقل
+  // علشان اروح لصفحة الترقية
+  const goToPromotion = () => {
+    if (!employeeName || !currentRank) return; // لسه البيانات مش جاهزة
+    navigate(`/promotion/${employeeId}`, {
+      state: {
+        employeeName: employeeName || "غير محدد",
+        currentRank: currentRank || "غير محدد"
+      }
+    });
+};
+// علشان اروح لصفحة انهاء الخدمة
+  const goToEndService = () => {
+    if (!employeeName || !currentRank) return; // لسه البيانات مش جاهزة
+    navigate(`/end_service/${employeeId}`, {
+      state: {
+        employeeName: employeeName || "غير محدد",
+        currentRank: currentRank || "غير محدد"
+      }
+    });
+};
+// علشان اروح صفحة الفصل 
+const goToTerminate = () => {
+    if (!employeeName || !currentRank) return; // لسه البيانات مش جاهزة
+    navigate(`/terminate/${employeeId}`, {
+      state: {
+        employeeName: employeeName || "غير محدد",
+        currentRank: currentRank || "غير محدد"
+      }
+    });
+};
+
   return (
     <aside className="w-64 bg-transparent p-4 flex flex-col gap-2">
       <div className="mt-8 bg-white rounded-lg shadow-md p-6">
@@ -123,13 +160,13 @@ const Sidebar = ({
       <div className="mt-6 bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">القرارات</h2>
         <div className="flex flex-wrap flex-col gap-3">
-          <button className="bg-green-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-green-700 transition-colors">
+          <button  onClick={goToPromotion} className="bg-green-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-green-700 transition-colors">
             ترقيه
           </button>
-          <button className="bg-red-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-red-700 transition-colors">
+          <button onClick={goToEndService} className="bg-red-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-red-700 transition-colors">
             انهاء خدمه
           </button>
-          <button className="bg-indigo-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-indigo-800 transition-colors">
+          <button onClick={goToTerminate} className="bg-indigo-600 text-white px-4 py-1 cursor-pointer rounded-lg hover:bg-indigo-800 transition-colors">
             فصل
           </button>
         </div>

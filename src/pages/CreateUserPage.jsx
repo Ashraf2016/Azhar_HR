@@ -44,7 +44,7 @@ const CreateUserPage = () => {
       setError("كلمتا المرور غير متطابقتين.");
       return;
     }
-axios.post("https://university.roboeye-tec.com/login_system/register", {
+    axios.post("https://university.roboeye-tec.com/auth/register", {
     username: email,
     name : username,
     password: password,

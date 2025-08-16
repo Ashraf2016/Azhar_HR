@@ -255,14 +255,17 @@ const EjazatDocument = ({ pdfData }) => {
 };
 
 
-  const academicChunks = chunkArray(pdfData.Egazat, 15);
+ 
   // Reverse career progression so most recent is first
-  const careerChunks = chunkArray(
-    [...pdfData.Egazat].sort(
-      (a, b) => new Date(b.execution_order_date) - new Date(a.execution_order_date)
-    ),
-    15
-  );
+ const careerChunks = chunkArray(
+  Array.isArray(pdfData.Egazat)
+    ? [...pdfData.Egazat].sort(
+        (a, b) => new Date(b.execution_order_date) - new Date(a.execution_order_date)
+      )
+    : [],
+  15
+);
+
 
   //دالة لايجاد تاريخ اليوم
  const getDateNow = () => {
@@ -273,7 +276,9 @@ const EjazatDocument = ({ pdfData }) => {
   return `${day}-${month}-${year}`; // النتيجة: 24-07-2025
 };
 
-
+const FileNumber = Array.isArray(pdfData.Egazat) && pdfData.Egazat.length > 0
+  ? pdfData.Egazat[0].fileNumber
+  : "";
 return (
   <Document>
     {/* ------------------------------------ */}
@@ -317,7 +322,7 @@ return (
         <View style={styles.employeeInfo}>
           {[
             ["الاسم", pdfData.name || ""],
-            ["رقم الملف", pdfData.Egazat[0].fileNumber || ""],
+            ["رقم الملف",  pdfData.fileNumber],
           ].map(([label, value], i) => (
             <View style={styles.infoItem} key={i}>
               <Text style={styles.infoLabel}>: {label}</Text>
@@ -385,7 +390,7 @@ return (
                 { justifyContent: "center", alignItems: "center" },
               ]}
             >
-              <Text style={styles.tableCell}>لا توجد بيانات</Text>
+              <Text style={styles.tableCell}>لا توجد اجازات</Text>
             </View>
           )}
         </View>

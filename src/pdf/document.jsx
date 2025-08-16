@@ -254,15 +254,29 @@ const MyDocument = ({ pdfData }) => {
   return `${day}-${month}-${year}`;
 };
 
-
-  const academicChunks = chunkArray(pdfData.academicQualifications, 15);
+const academicQualificationsSafe = Array.isArray(pdfData.academicQualifications)
+  ? pdfData.academicQualifications.filter(q => q) // حذف العناصر undefined/null
+  : [];
+  const academicChunks = chunkArray(academicQualificationsSafe, 15);
   // Reverse career progression so most recent is first
-  const careerChunks = chunkArray(
-    [...pdfData.careerProgression].sort(
-      (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
-    ),
-    15
-  );
+
+  const careerProgressionSafe = Array.isArray(pdfData.careerProgression)
+  ? pdfData.careerProgression.filter(c => c) // حذف العناصر undefined/null
+  : [];
+
+const careerChunks = chunkArray(
+  [...careerProgressionSafe].sort(
+    (a, b) => new Date(b?.dateOfOccupation) - new Date(a?.dateOfOccupation)
+  ),
+  15
+);
+
+  // const careerChunks = chunkArray(
+  //   [...pdfData.careerProgression].sort(
+  //     (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
+  //   ),
+  //   15
+  // );
 
   //دالة لايجاد تاريخ اليوم
  const getDateNow = () => {
@@ -351,7 +365,7 @@ return (
             )}
           </View>
           {academicChunks[0] && academicChunks[0].length > 0 ? (
-            academicChunks[0].map((row, i) => (
+            academicChunks[0].filter(row => row).map((row, i) => (
               <View style={styles.tableRow} key={i}>
                 {[
                   i + 1,
@@ -409,16 +423,16 @@ return (
             ))}
           </View>
           {careerChunks[0] && careerChunks[0].length > 0 ? (
-            careerChunks[0].map((row, i) => (
+            careerChunks[0].filter(row => row).map((row, i) => (
               <View style={styles.tableRow} key={i}>
                 {[
                   i + 1,
-                  row.jobTitle,
-                  row.department,
-                  row.faculty,
-                  formatDate(row.dateOfOccupation),
-                  formatDate(row.expirationDateOfOccupation),
-                  formatDate(row.dateOfStartJob),
+                  row.jobTitle || "",
+                  row.department || "",
+                  row.faculty || "",
+                  formatDate(row.dateOfOccupation)|| "",
+                  formatDate(row.expirationDate)|| "",
+                  formatDate(row.dateOfStartJob)|| "",
                   
                   row.notes || "",
                 ].map((col, j) => (
@@ -448,12 +462,12 @@ return (
       <View style={styles.bottomTableRow}>
         {["الدرجة الحالية", "القسم", "الكلية"].map((col, i) => (
           <View key={i} style={styles.bottomTableCol}>
-            <Text style={styles.bottomTableCell}>{col}</Text>
+            <Text style={styles.bottomTableCell}>{col || ""}</Text>
           </View>
         ))}
       </View>
       <View style={styles.bottomTableRow}>
-        {[pdfData.currentPosition.jobTitle || "", pdfData.currentPosition.department || "", pdfData.currentPosition.faculty || ""].map((value, i) => (
+        {[pdfData.currentPosition?.jobTitle || "", pdfData.currentPosition?.department || "", pdfData.currentPosition?.faculty || ""].map((value, i) => (
           <View key={i} style={styles.bottomTableCol}>
             <Text style={styles.bottomTableCell}>{value}</Text>
           </View>
@@ -482,7 +496,8 @@ return (
     {/* ------------------------------------ */}
     {/* Pages 2+ : Additional Academic Qualification Chunks */}
     {/* ------------------------------------ */}
-    {academicChunks.slice(1).map((chunk, pageIndex) => (
+    {pdfData.academicQualifications && pdfData.academicQualifications.length > 0 && academicChunks.length > 1 &&
+    academicChunks.slice(1).map((chunk, pageIndex) => (
       <Page
         key={`academic-page-${pageIndex}`}
         size="A4"
@@ -504,7 +519,7 @@ return (
                 )
               )}
             </View>
-            {chunk.map((row, i) => (
+            {Array.isArray(chunk) &&chunk.map((row, i) => (
               <View style={styles.tableRow} key={i}>
                 {[
                   pageIndex * 15 + i + 1,
@@ -520,7 +535,7 @@ return (
                     key={j}
                     style={j === 0 ? styles.tableColNarrow : styles.tableCol}
                   >
-                    <Text style={styles.tableCell}>{col}</Text>
+                    <Text style={styles.tableCell}>{col || ""}</Text>
                   </View>
                 ))}
               </View>
@@ -564,23 +579,23 @@ return (
                 )
               )}
             </View>
-            {chunk.map((row, i) => (
+            {chunk.filter(row => row).map((row, i) => (
               <View style={styles.tableRow} key={i}>
                 {[
                   pageIndex * 15 + i + 1,
-                  row.jobTitle,
-                  row.department,
-                  row.faculty,
-                  formatDate(row.dateOfOccupation),
-                  formatDate(row.expirationDateOfOccupation),
-                  formatDate(row.dateOfStartJob),
+                  row.jobTitle || "",
+                  row.department || "",
+                  row.faculty|| "",
+                  formatDate(row.dateOfOccupation)|| "",
+                  formatDate(row.expirationDate)|| "",
+                  formatDate(row.dateOfStartJob)|| "",
                   row.notes || "",
                 ].map((col, j) => (
                   <View
                     key={j}
                     style={j === 0 ? styles.tableColNarrow : styles.tableCol}
                   >
-                    <Text style={styles.tableCell}>{col}</Text>
+                    <Text style={styles.tableCell}>{col|| ""}</Text>
                   </View>
                 ))}
               </View>
@@ -627,3 +642,6 @@ return (
 );
 };
 export default MyDocument;
+
+// CareerDocument.jsx (محمي ضد undefined/null)
+

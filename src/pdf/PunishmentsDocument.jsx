@@ -313,12 +313,12 @@ return (
 
       {/* --- Section: Employee Info --- */}
       <View style={styles.section}>
-        {console.log(pdfData.punishments[0].name)}
+        {console.log(pdfData.name)}
         <Text style={styles.sectionTitle}>بيان بالجزاءات</Text>
         <View style={styles.employeeInfo}>
           {[
-            ["الاسم", pdfData.punishments[0].name || ""],
-            ["رقم الملف", pdfData.punishments[0].fileNumber || ""],
+            ["الاسم", pdfData.name || ""],
+            ["رقم الملف", pdfData.fileNumber || ""],
           ].map(([label, value], i) => (
             <View style={styles.infoItem} key={i}>
               <Text style={styles.infoLabel}>: {label}</Text>

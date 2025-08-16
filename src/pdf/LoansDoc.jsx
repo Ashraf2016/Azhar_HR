@@ -384,7 +384,7 @@ return (
                 { justifyContent: "center", alignItems: "center" },
               ]}
             >
-              <Text style={styles.tableCell}>لا توجد بيانات</Text>
+              <Text style={styles.tableCell}>لا توجد إعارات</Text>
             </View>
           )}
         </View>

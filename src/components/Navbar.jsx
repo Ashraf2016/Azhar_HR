@@ -104,6 +104,14 @@ const Navbar = ({ onLogoClick }) => {
                   الأقسام
                 </a>
                 <a
+                  href="/assignTA"
+                  onClick={(e) => handleProtectedLink(e, "/assignTA")}
+                  className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  تعيين معيدين
+                </a>
+                
+                <a
                   href="#"
                   onClick={(e) => handleProtectedLink(e, "/settings")}
                   className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -112,16 +120,26 @@ const Navbar = ({ onLogoClick }) => {
                 </a>
               </div>
 
-              {/* تسجيل الخروج */}
+              {/* تسجيل الخروج وتعديل كلمة المرور*/}
               {isLoggedIn && (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
-                >
-                  <LogOut className="w-4 h-4" />
-                  تسجيل الخروج
-                </button>
+                <>
+                  <a
+                    href="/change-password"
+                    className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    تعديل كلمة المرور
+                  </a>
+
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    تسجيل الخروج
+                  </button>
+                </>
               )}
+
             </div>
 
             {/* Mobile Menu Button */}
@@ -193,6 +211,13 @@ const Navbar = ({ onLogoClick }) => {
               الأقسام
             </a>
             <a
+              href="/assignTA"
+              onClick={(e) => handleProtectedLink(e, "/assignTA")}
+              className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
+            >
+              تعيين معيدين
+            </a>
+            <a
               href="#"
               onClick={(e) => handleProtectedLink(e, "/settings")}
               className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
@@ -201,13 +226,23 @@ const Navbar = ({ onLogoClick }) => {
             </a>
 
             {isLoggedIn && (
-              <button
-                onClick={handleLogout}
-                className="w-full text-right px-3 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm text-white"
-              >
-                تسجيل الخروج
-              </button>
-            )}
+                <>
+                  <a
+                    href="/change-password"
+                    className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
+                  >
+                    تعديل كلمة المرور
+                  </a>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-right px-3 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm text-white"
+                  >
+                    تسجيل الخروج
+                  </button>
+                </>
+              )}
+
           </div>
         )}
       </nav>

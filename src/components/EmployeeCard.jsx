@@ -28,7 +28,7 @@ const EmployeeCard = ({ employee, onClick }) => {
           <h3 className="text-lg font-semibold text-gray-900 mb-1">
             {employee.name || "Known"}
           </h3>
-          <p className="text-blue-600 font-medium mb-1">{employee.job_title}</p>
+          <p className="text-blue-600 font-medium mb-1">{employee.current_position}</p>
           <p className="text-gray-600 text-sm">{employee.department_name}</p>
         </div>
         <div className="text-gray-400">

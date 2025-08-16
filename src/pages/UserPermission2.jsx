@@ -41,7 +41,7 @@ const UserPermissions = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "https://university.roboeye-tec.com/login_system/users"
+        "https://university.roboeye-tec.com/users/all"
       );
       setUsers(response.data);
       setFilteredUsers(response.data);
@@ -93,8 +93,8 @@ const UserPermissions = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.get(
-        `https://university.roboeye-tec.com/login_system/delete-user/${selectedUserId}`
+      await axios.delete(
+        `https://university.roboeye-tec.com/users/${selectedUserId}`
       );
       setUsers((prev) => prev.filter((user) => user.id !== selectedUserId));
       setFilteredUsers((prev) =>
@@ -167,7 +167,7 @@ const UserPermissions = () => {
 
     try {
       await axios.put(
-        `https://university.roboeye-tec.com/login_system/update-roles/${editingUserId}`,
+        `https://university.roboeye-tec.com/users/${editingUserId}`,
         { roles: formattedPermissions }
       );
       alert("✅ تم حفظ الصلاحيات بنجاح");

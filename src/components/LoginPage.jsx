@@ -28,12 +28,13 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        "https://university.roboeye-tec.com/login_system/login",
+        "https://university.roboeye-tec.com/auth/login",
         { username, password }
       );
 
       const data = response.data;
       console.log(data);
+      localStorage.setItem("userId", data.id);
 
       if (data.success) {
         localStorage.setItem("token", data.token);
