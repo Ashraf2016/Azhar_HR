@@ -9,12 +9,12 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import Logo from "../assets/Logo.png";
-
 // ✅ Register Arabic font using Google Fonts URL (this works better than local files)
 Font.register({
   family: "NotoSansArabic",
   src: "https://fonts.gstatic.com/s/notosansarabic/v18/nwpxtLGrOAZMl5nJ_wfgRg3DrWFZWsnVBJ_sS6tlqHHFlhQ5l3sQWIHPqzCfyGyvu3CBFQLaig.ttf",
 });
+
 
 console.log("LoansDocument component is loaded!");
 

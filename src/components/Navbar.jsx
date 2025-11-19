@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronDown, Menu, X, LogOut } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronDown,
+  Menu,
+  X,
+  LogOut,
+  User,
+} from "lucide-react";
 import Logo from "../assets/Logo.png";
 import { useIsLoggedIn } from "../contexts/isLoggedinContext";
 
@@ -7,12 +14,15 @@ const Navbar = ({ onLogoClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { isLoggedIn, setIsLoggedIn } = useIsLoggedIn();
+  const username = localStorage.getItem("username");
 
   // تسجيل الخروج
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("username");
     setIsLoggedIn(false);
     window.location.href = "/";
   };
@@ -29,7 +39,7 @@ const Navbar = ({ onLogoClick }) => {
 
   return (
     <>
-      <nav className="bg-blue-900 text-white shadow-lg" dir="rtl">
+      <nav className="bg-blue-900 text-white shadow-lg print:hidden" dir="rtl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -48,7 +58,7 @@ const Navbar = ({ onLogoClick }) => {
             </div>
 
             {/* Desktop Links */}
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-6">
               <div className="mr-10 flex items-baseline space-x-reverse space-x-4 relative">
                 <a
                   href="/"
@@ -86,8 +96,8 @@ const Navbar = ({ onLogoClick }) => {
                         إنشاء مستخدم جديد
                       </a>
                       <a
-                        href="/permission"
-                        onClick={(e) => handleProtectedLink(e, "/permissions")}
+                        href="/roles"
+                        onClick={(e) => handleProtectedLink(e, "/roles")}
                         className="block px-4 py-2 text-sm hover:bg-gray-100"
                       >
                         صلاحيات المستخدم
@@ -97,49 +107,58 @@ const Navbar = ({ onLogoClick }) => {
                 </div>
 
                 <a
-                  href="#"
-                  onClick={(e) => handleProtectedLink(e, "/sections")}
+                  href="/statistics"
+                  onClick={(e) => handleProtectedLink(e, "/statistics")}
                   className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  الأقسام
+                  الاحصائيات
                 </a>
                 <a
                   href="/assignTA"
                   onClick={(e) => handleProtectedLink(e, "/assignTA")}
                   className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  تعيين معيدين
+                  تعيين جديد
                 </a>
+
                 
-                <a
-                  href="#"
-                  onClick={(e) => handleProtectedLink(e, "/settings")}
-                  className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  الإعدادات
-                </a>
               </div>
 
-              {/* تسجيل الخروج وتعديل كلمة المرور*/}
+              {/* أيقونة المستخدم */}
               {isLoggedIn && (
-                <>
-                  <a
-                    href="/change-password"
-                    className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    تعديل كلمة المرور
-                  </a>
-
+                <div className="relative">
                   <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
+                    onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                    className="flex cursor-pointer items-center gap-2 bg-blue-800 px-4 py-2 rounded-lg text-sm hover:bg-blue-700"
                   >
-                    <LogOut className="w-4 h-4" />
-                    تسجيل الخروج
+                    <User className="w-5 h-5" />
+                    <span>{username}</span>
+                    {isUserMenuOpen ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronLeft className="w-4 h-4" />
+                    )}
                   </button>
-                </>
-              )}
 
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-md shadow-lg ring-1 ring-black overflow-hidden ring-opacity-5 z-50">
+                      <a
+                        href="/change-password"
+                        className="block px-4 py-2 text-sm hover:bg-gray-100"
+                      >
+                        تعديل كلمة المرور
+                      </a>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-right px-4 py-2 text-sm hover:bg-gray-100 flex  cursor-pointer items-center gap-2 text-red-600"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        تسجيل الخروج
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -193,8 +212,8 @@ const Navbar = ({ onLogoClick }) => {
                     إنشاء مستخدم جديد
                   </a>
                   <a
-                    href="/permission"
-                    onClick={(e) => handleProtectedLink(e, "/permissions")}
+                    href="/roles"
+                    onClick={(e) => handleProtectedLink(e, "/roles")}
                     className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
                   >
                     صلاحيات المستخدم
@@ -204,45 +223,58 @@ const Navbar = ({ onLogoClick }) => {
             </div>
 
             <a
-              href="#"
-              onClick={(e) => handleProtectedLink(e, "/sections")}
-              className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
-            >
-              الأقسام
+                  href="/statistics"
+                  onClick={(e) => handleProtectedLink(e, "/statistics")}
+                  className="hover:bg-blue-800 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  الاحصائيات
             </a>
             <a
               href="/assignTA"
               onClick={(e) => handleProtectedLink(e, "/assignTA")}
               className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
             >
-              تعيين معيدين
+              تعيين جديد
             </a>
-            <a
-              href="#"
-              onClick={(e) => handleProtectedLink(e, "/settings")}
-              className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
-            >
-              الإعدادات
-            </a>
+            
 
+            {/* أيقونة المستخدم في الموبايل */}
             {isLoggedIn && (
-                <>
-                  <a
-                    href="/change-password"
-                    className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
-                  >
-                    تعديل كلمة المرور
-                  </a>
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  className="w-full cursor-pointer flex items-center justify-between px-3 py-2 bg-blue-700 rounded-md text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    <span>{username}</span>
+                  </div>
+                  {isUserMenuOpen ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronLeft className="w-4 h-4" />
+                  )}
+                </button>
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-right px-3 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm text-white"
-                  >
-                    تسجيل الخروج
-                  </button>
-                </>
-              )}
-
+                {isUserMenuOpen && (
+                  <div className="mt-2 bg-white text-gray-800 overflow-hidden rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                    <a
+                      href="/change-password"
+                      className="block px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                    >
+                      تعديل كلمة المرور
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-right cursor-pointer px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      تسجيل الخروج
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </nav>
@@ -266,9 +298,19 @@ const Navbar = ({ onLogoClick }) => {
           </div>
         </div>
       )}
+      <style>
+        {`
+          @media print {
+            nav {
+              display: none !important;
+            }
+          }
+        `}
+      </style>
+
     </>
+    
   );
 };
 
 export default Navbar;
-

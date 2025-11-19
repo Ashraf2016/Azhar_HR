@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "@/axiosInstance";
 import { useParams ,useLocation ,useNavigate } from "react-router-dom";
 import Select from "react-select"; // ✅ مكتبة الـ Dropdown مع البحث
 
@@ -20,13 +20,16 @@ const PromotionPage = () => {
     }
 
   const [formData, setFormData] = useState({
-    university_file_number: "",
+    id: "",
     new_job_code: "",
     promotion_date: "",
     order_number: "",
     order_date: "",
     decision_authority: "",
+    created_by: localStorage.getItem("username") || "", 
+    actionType:"promotion"
   });
+
 
   const [jobCodes, setJobCodes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +39,7 @@ const PromotionPage = () => {
  useEffect(() => {
   const fetchJobCodes = async () => {
     try {
-      const res = await axios.get("https://university.roboeye-tec.com/structure/academic-degree");
+      const res = await axiosInstance.get("/structure/academic-degree");
       if (Array.isArray(res.data)) {
 
         // البحث عن كود الدرجة الحالية
@@ -70,7 +73,7 @@ const PromotionPage = () => {
     if (employeeId) {
       setFormData((prev) => ({
         ...prev,
-        university_file_number: employeeId,
+        id: employeeId,
       }));
     }
   }, [employeeId]);
@@ -78,25 +81,25 @@ const PromotionPage = () => {
   const handleSubmit = async (e) => {
   e.preventDefault();
   setMessage("");
-
-//   // ✅ التحقق من أن تاريخ الترقية بعد تاريخ القرار
-//   const orderDate = new Date(formData.order_date);
-//   const promotionDate = new Date(formData.promotion_date);
-
-//   if (promotionDate <= orderDate) {
-//     setMessage("❌ تاريخ الترقية يجب أن يكون بعد تاريخ القرار");
-//     return; // نوقف الإرسال
-//   }
-
   setLoading(true);
 
   try {
-    const response = await axios.post(
-      "https://university.roboeye-tec.com/employee/promote",
+    const response = await axiosInstance.post(
+      "/employee/promote",
       formData
     );
 
     setMessage("✅ تم تسجيل الترقية بنجاح");
+    setFormData({
+        id: employeeId,
+        new_job_code: "",
+        promotion_date: "",
+        order_number: "",
+        order_date: "",
+        decision_authority: "",
+        created_by: localStorage.getItem("username") || "",
+        actionType: "promotion"
+      });
     console.log(response.data);
   } catch (error) {
     setMessage("❌ حدث خطأ أثناء التسجيل");
@@ -138,18 +141,18 @@ const PromotionPage = () => {
         
         <form onSubmit={handleSubmit} className="space-y-4" dir="rtl">
           {/* رقم الملف */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-600">
-              رقم الملف الجامعي
+              الرقم التعريفي لعضو هيئة التدريس
             </label>
             <input
               type="text"
-              name="university_file_number"
-              value={formData.university_file_number}
+              name="id"
+              value={formData.id}
               readOnly
               className="mt-1 block w-full bg-gray-100 rounded-lg border-gray-300 shadow-sm p-2"
             />
-          </div>
+          </div> */}
 
           {/* كود الوظيفة الجديدة مع البحث */}
           <div>
@@ -240,6 +243,19 @@ const PromotionPage = () => {
               className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              اسم المستخدم (مدخل البيانات)
+            </label>
+            <input
+              type="text"
+              name="created_by"
+              value={formData.created_by}
+              readOnly
+              className="mt-1 block w-full bg-gray-100 rounded-lg border-gray-300 shadow-sm p-2"
+            />
+          </div>
+
 
           <button
             type="submit"

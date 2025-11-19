@@ -9,7 +9,6 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import Logo from "../assets/Logo.png";
-
 // ✅ Register Arabic font using Google Fonts URL (this works better than local files)
 Font.register({
   family: "NotoSansArabic",

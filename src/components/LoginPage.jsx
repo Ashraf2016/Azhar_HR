@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import axios from "axios";
+import axiosInstance from "@/axiosInstance";
 import { useIsLoggedIn } from "../contexts/isLoggedinContext";
 
 const LoginPage = () => {
@@ -27,8 +27,8 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://university.roboeye-tec.com/auth/login",
+      const response = await axiosInstance.post(
+        "/auth/login",
         { username, password }
       );
 
@@ -38,6 +38,7 @@ const LoginPage = () => {
 
       if (data.success) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
         setIsLoggedIn(true); // تحديث الحالة فوراً
         navigate("/");       // توجيه للصفحة الرئيسية
       } else {

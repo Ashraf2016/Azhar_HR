@@ -10,6 +10,7 @@ import {
 import person from "../assets/person.png";
 
 const EmployeeCard = ({ employee, onClick }) => {
+  console.log("lll",employee)
   return (
     <div
       className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 cursor-pointer border border-gray-200 hover:border-blue-300"
@@ -40,3 +41,5 @@ const EmployeeCard = ({ employee, onClick }) => {
 };
 
 export default EmployeeCard;
+
+

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import axios from "axios";
+import axiosInstance from "@/axiosInstance";
 
 const ChangePasswordPage = () => {
   const [oldPassword, setOldPassword] = useState("");
@@ -28,8 +28,8 @@ const ChangePasswordPage = () => {
         return setMessage("حدث خطأ: لا يمكن التعرف على المستخدم");
       }
       else {
-      const response = await axios.post(
-        `https://university.roboeye-tec.com/auth/change-password/${userId}`,
+      const response = await axiosInstance.post(
+        `/auth/change-password/${userId}`,
         {
           "currentPassword" : oldPassword,
           "newPassword": newPassword,

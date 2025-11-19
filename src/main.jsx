@@ -5,7 +5,7 @@ import App from "./App.jsx";
 import { IsLoggedInProvider } from "./contexts/isLoggedinContext"; // استدعاء الـ Provider
 import { Buffer } from "buffer";
 window.Buffer = Buffer;
-
+import "../src/pdf/Fonts.js"
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
