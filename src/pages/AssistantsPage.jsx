@@ -118,7 +118,7 @@ const AssistantsPage = () => {
     // Function to show popup
     const showPopup = (type, message) => {
         setPopup({ type, message });
-        setTimeout(() => setPopup({ type: "", message: "" }), 3000);
+        setTimeout(() => setPopup({ type: "", message: "" }), 5000);
     };
 
     // Collapsible sections
@@ -332,7 +332,7 @@ const AssistantsPage = () => {
 
             showPopup("success", "تم إضافة الموظف بنجاح 🎉");
 
-            setTimeout(() => navigate("/"), 1200);
+            // setTimeout(() => navigate("/"), 1200);
         } catch (err) {
             showPopup("error", "حدث خطأ أثناء حفظ البيانات ❌");
         }

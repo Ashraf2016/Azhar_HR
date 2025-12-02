@@ -509,7 +509,7 @@
 import { Search, User, Mail, Phone, MapPin, Calendar, ChevronRight , Settings } from "lucide-react";
 import person from "../assets/person.png";
 import { useParams, useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 
 
 // الملفات الخاصة بتوليد PDF
@@ -557,13 +557,31 @@ const EmployeeProfilePage = () => {
     setTimeout(() => setPopupMessage(null), 3000);
   };
 
+  // const getLatestCareerEntry = (careerProgression) => {
+  //   if (!careerProgression || careerProgression.length === 0) return null;
+  //   const sortedEntries = [...careerProgression].sort(
+  //     (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
+  //   );
+  //   return sortedEntries[0];
+  // };
   const getLatestCareerEntry = (careerProgression) => {
-    if (!careerProgression || careerProgression.length === 0) return null;
-    const sortedEntries = [...careerProgression].sort(
-      (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
-    );
-    return sortedEntries[0];
-  };
+  if (!careerProgression || careerProgression.length === 0) return null;
+
+  // فلترة الوظائف الـ Active فقط
+  const activeJobs = careerProgression.filter(
+    (job) => job.JobStatus?.toLowerCase() === "active"
+  );
+
+  if (activeJobs.length === 0) return null;
+
+  // ترتيب الوظائف الـ Active حسب التاريخ
+  const sortedEntries = [...activeJobs].sort(
+    (a, b) => new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
+  );
+
+  return sortedEntries[0];
+};
+
 
   const handleDelete = async () => {
     if (!selectedJobId) return;

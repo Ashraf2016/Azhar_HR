@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { setNavigate } from "./navigate";
 
 import Navbar from "./components/Navbar";
+
+// Pages
 import EmployeeListPage from "./pages/EmployeeListPage";
 import CreateUserPage from "./pages/CreateUserPage";
 import EmployeeProfilePage from "./pages/EmployeeProfilePage";
@@ -25,13 +27,16 @@ import ChangePassword from "./pages/ChangePassword";
 import UserPermissions from "./pages/UserPermissions";
 import UserPermission from "./pages/UserPermission2";
 import PDFGenerator from "./PdfGenerator";
-import { IsLoggedInProvider } from "./contexts/isLoggedinContext";
-import { FiltersProvider } from "./contexts/filtersContext";
 import SecondmentPage from "./pages/SecondmentPage";
+import SecondmentPageState from "./pages/SecondmentPageState";
+
+// Contexts
+import { IsLoggedInProvider } from "./contexts/isLoggedinContext";
+import { PermissionsProvider } from "./contexts/PermissionsContext";
+import { FiltersProvider } from "./contexts/FiltersContext";
 
 
-// =============== App Wrapper ===============
-// هنا نستخدم useNavigate ونمرره لـ navigate.js
+// ================= App Wrapper =================
 const AppWrapper = () => {
   const navigate = useNavigate();
 
@@ -43,56 +48,66 @@ const AppWrapper = () => {
 };
 
 
-// =============== App (Routes فقط بدون Router) ===============
+// ================= App =================
 const App = () => {
   return (
     <IsLoggedInProvider>
-      <FiltersProvider>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <Navbar onLogoClick={() => {}} />
-          <Routes>
-            <Route path="/" element={<EmployeeListPage />} />
-            <Route path="/assignTA" element={<AssistantsPage />} />
-            <Route path="/promotion/:employeeId" element={<Promotion />} />
-            <Route path="/end_service/:employeeId" element={<EndService />} />
-            <Route path="/terminate/:employeeId" element={<Termination />} />
-            <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="/profile/:employeeId" element={<EmployeeProfilePage />} />
-            <Route path="/pdf" element={<PDFGenerator />} />
-            <Route path="/createUser" element={<CreateUserPage />} />
+      <PermissionsProvider>
+        <FiltersProvider>
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Navbar onLogoClick={() => {}} />
 
-            <Route path="/holidays/:employeeID" element={<EmployeeHolidaysPage />} />
-            <Route path="/review/:employeeID" element={<Review />} />
+            <Routes>
+              <Route path="/" element={<EmployeeListPage />} />
+              <Route path="/assignTA" element={<AssistantsPage />} />
+              <Route path="/promotion/:employeeId" element={<Promotion />} />
+              <Route path="/end_service/:employeeId" element={<EndService />} />
+              <Route path="/terminate/:employeeId" element={<Termination />} />
+              <Route path="/change-password" element={<ChangePassword />} />
+              <Route path="/profile/:employeeId" element={<EmployeeProfilePage />} />
+              <Route path="/pdf" element={<PDFGenerator />} />
+              <Route path="/createUser" element={<CreateUserPage />} />
 
-            <Route path="/punishments/:employeeID" element={<EmployeePunishmentsPage />} />
-            <Route path="/punishments/add/:employeeID" element={<AddPunishmentPage />} />
-            <Route path="/punishments/edit/:employeeID/:punishmentID" element={<AddPunishmentPage />} />
+              <Route path="/holidays/:employeeID" element={<EmployeeHolidaysPage />} />
+              <Route path="/review/:employeeID" element={<Review />} />
 
-            <Route path="/careers/:employeeID" element={<EmployeeCareersPage />} />
-            <Route path="/deputation/:employeeID" element={<EmployeeDeputationPage />} />
-            <Route path="/allStates/:employeeID" element={<EmployeeAllStatesPage />} />
+              <Route path="/punishments/:employeeID" element={<EmployeePunishmentsPage />} />
+              <Route path="/punishments/add/:employeeID" element={<AddPunishmentPage />} />
+              <Route path="/punishments/edit/:employeeID/:punishmentID" element={<AddPunishmentPage />} />
 
-            <Route path="/holidays/:employeeID/create" element={<CreateNewHoliday />} />
-            <Route path="/permissions" element={<UserPermissions />} />
-            <Route path="/permission" element={<UserPermission />} />
-            <Route path="/secondment" element={<SecondmentPage />} />
-            <Route path="/roles" element={<RolesManagementPage />} />
-            <Route path="/statistics" element={<Statistics />} />
+              <Route path="/careers/:employeeID" element={<EmployeeCareersPage />} />
+              <Route path="/deputation/:employeeID" element={<EmployeeDeputationPage />} />
+              <Route path="/allStates/:employeeID" element={<EmployeeAllStatesPage />} />
 
-            <Route path="/deputation/add/:employeeID" element={<CreateDeputationPage />} />
-            <Route path="/deputation/edit/:employeeID/:serialNumber" element={<CreateDeputationPage />} />
+              <Route path="/holidays/:employeeID/create" element={<CreateNewHoliday />} />
+              <Route path="/permissions" element={<UserPermissions />} />
+              <Route path="/permission" element={<UserPermission />} />
 
-            <Route path="/holidays/add/:employeeID" element={<CreateNewHoliday />} />
-            <Route path="/holidays/edit/:employeeID/:serialNumber" element={<CreateNewHoliday />} />
-          </Routes>
-        </div>
-      </FiltersProvider>
+              <Route path="/roles" element={<RolesManagementPage />} />
+              <Route path="/statistics" element={<Statistics />} />
+
+              {/* الاعارات */}
+              <Route path="/deputation/add/:employeeID" element={<CreateDeputationPage />} />
+              <Route path="/deputation/edit/:employeeID/:serialNumber" element={<CreateDeputationPage />} />
+
+              {/* الاجازات */}
+              <Route path="/holidays/add/:employeeID" element={<CreateNewHoliday />} />
+              <Route path="/holidays/edit/:employeeID/:serialNumber" element={<CreateNewHoliday />} />
+
+              {/* الانتدابات */}
+              <Route path="/secondment/add/:employeeID" element={<SecondmentPage />} />
+              <Route path="/secondment/edit/:employeeID/:serialNumber" element={<SecondmentPage />} />
+              <Route path="/secondment/:employeeID" element={<SecondmentPageState />} />
+            </Routes>
+          </div>
+        </FiltersProvider>
+      </PermissionsProvider>
     </IsLoggedInProvider>
   );
 };
 
 
-// =============== Root Component ===============
+// ================= Root =================
 const RootApp = () => (
   <Router>
     <AppWrapper />

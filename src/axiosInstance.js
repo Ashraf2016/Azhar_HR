@@ -23,12 +23,10 @@ axiosInstance.interceptors.response.use(
     const message = error?.response?.data?.message;
 
     if (status === 401 || message === "Invalid or expired token") {
-      // حذف بيانات المستخدم
+     
       localStorage.removeItem("token");
       localStorage.removeItem("username");
       localStorage.removeItem("userId");
-
-      // التوجيه لصفحة تسجيل الدخول (الصفحة الرئيسية /)
       navigate("/");
     }
 
@@ -37,3 +35,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+

@@ -409,8 +409,6 @@ const CreateNewHoliday = () => {
   const isEditMode = !!serialNumber;
   const pageTitle = isEditMode ? "تعديل بيانات الإجازة" : "إضافة إجازة جديدة";
   
-  // البيانات الأولية (قد تحتوي على بيانات التعديل المُمررة)
-  // ملاحظة: يُفترض أن البيانات المُمررة (holidayData) تأتي بنفس صيغة الـ API الجديدة
   const passedData = location.state?.holidayData;
 
   // دالة تحويل التاريخ إلى صيغة حقل الإدخال
@@ -420,7 +418,7 @@ const CreateNewHoliday = () => {
   // 💡 تحديث حقول formData لتناسب هيكلية البيانات الجديدة
   const [formData, setFormData] = useState({
     // بيانات الموظف (ثابتة)
-    university_file_number: passedData?.university_file_number || employeeID || "",
+    employee_id: passedData?.employee_id || employeeID || "",
     
     // بيانات الإجازة
     grant_type: passedData?.grant_type || "اعتماد اجازة", // افتراض قيمة لـ Grant Type
@@ -450,7 +448,7 @@ const CreateNewHoliday = () => {
     if (employeeID && !isEditMode) {
       setFormData((prev) => ({
         ...prev,
-        university_file_number: employeeID,
+        employee_id: employeeID,
       }));
     }
   }, [employeeID, isEditMode]);
@@ -507,7 +505,7 @@ const CreateNewHoliday = () => {
       
       // تفريغ الحقول في حالة الإضافة الجديدة فقط
       setFormData((prev) => ({
-        ...prev, // نحافظ على university_file_number
+        ...prev, // نحافظ على employee_id
         grant_type: "اعتماد اجازة",
         leave_type: "",
         country_name: "",
@@ -532,7 +530,7 @@ const CreateNewHoliday = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 flex justify-center items-start">
+    <div className="h-screen bg-gray-100 py-10 flex justify-center items-start ">
         {/* زر الرجوع أعلى اليسار */}
         <div className="">
           <button
@@ -565,8 +563,8 @@ const CreateNewHoliday = () => {
                 <label className="font-medium text-gray-700 mb-1">رقم الملف الجامعي</label>
                 <input
                 type="text"
-                name="university_file_number"
-                value={formData.university_file_number}
+                name="employee_id"
+                value={formData.employee_id}
                 readOnly
                 className="border rounded-xl p-3 bg-gray-100 text-gray-700 cursor-not-allowed shadow-inner"
                 />

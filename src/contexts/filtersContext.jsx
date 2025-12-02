@@ -14,7 +14,7 @@ export const FiltersProvider = ({ children }) => {
           selectedCollege: "",
           selectedDepartment: "",
           selectedDegree: "",
-          workStatus: "2",
+          workStatus: "0",
         };
   });
 

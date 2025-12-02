@@ -13,7 +13,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // إذا المستخدم مسجل دخول بالفعل، نوجهه مباشرة
+ 
   useEffect(() => {
     if (localStorage.getItem("token")) {
       setIsLoggedIn(true);
@@ -36,12 +36,28 @@ const LoginPage = () => {
       console.log(data);
       localStorage.setItem("userId", data.id);
 
+      // if (data.success) {
+      //   localStorage.setItem("token", data.token);
+      //   localStorage.setItem("username", data.username);
+      //   setIsLoggedIn(true); // تحديث الحالة فوراً
+      //   navigate("/");       // توجيه للصفحة الرئيسية
       if (data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("username", data.username);
-        setIsLoggedIn(true); // تحديث الحالة فوراً
-        navigate("/");       // توجيه للصفحة الرئيسية
-      } else {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("username", data.username);
+      setIsLoggedIn(true);
+
+   
+      const userInfoResponse = await axiosInstance.get("/users/userInfo");
+
+      const userInfo = userInfoResponse.data;
+
+      localStorage.setItem("permissions", JSON.stringify(userInfo.permissions));
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+
+      navigate("/");
+    
+      
+    } else {
         setError(data.message || "بيانات الدخول غير صحيحة");
       }
     } catch (err) {
