@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("username");
       localStorage.removeItem("userId");
-      navigate("/");
+      navigate("/login");
     }
 
     return Promise.reject(error);

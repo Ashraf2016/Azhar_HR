@@ -381,6 +381,15 @@ const Navbar = ({ onLogoClick }) => {
                 الرئيسية
               </a>
 
+              <a
+                href="/leaders-categories"
+                onClick={(e) => handleProtectedLink(e, "/leaders-categories")}
+                className="hover:bg-blue-800 px-3 py-2 rounded-md"
+              >
+                الإدارة
+              </a>
+
+              {role === "مدير النظام" && (
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -392,24 +401,23 @@ const Navbar = ({ onLogoClick }) => {
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow">
-                    {hasPermission("user:create") && (
+                        <a href="/users" className="block px-4 py-2 hover:bg-gray-100">الموظفون</a>
                       <a href="/createUser" className="block px-4 py-2 hover:bg-gray-100">
                         إنشاء مستخدم جديد
                       </a>
-                    )}
 
-                    {role === "مدير النظام" && (
                       <a href="/roles" className="block px-4 py-2 hover:bg-gray-100">
                         صلاحيات المستخدم
                       </a>
-                    )}
                   </div>
                 )}
               </div>
+              )}
 
+              {role === "مدير النظام" && (
               <a href="/statistics" onClick={(e) => handleProtectedLink(e, "/")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
                 الاحصائيات
-              </a>
+              </a>)}
 
               {hasPermission("employee:create") && (
                 <a href="/assignTA" className="hover:bg-blue-800 px-3 py-2 rounded-md">
@@ -463,6 +471,7 @@ const Navbar = ({ onLogoClick }) => {
             الرئيسية
           </a>
 
+          {role === "مدير النظام" && (
           <div>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -492,11 +501,12 @@ const Navbar = ({ onLogoClick }) => {
                 )}
               </div>
             )}
-          </div>
+          </div> )}
 
+          {role === "مدير النظام" && (
           <a href="/statistics" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
             الاحصائيات
-          </a>
+          </a>)}
 
           {hasPermission("employee:create") && (
             <a href="/assignTA" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">

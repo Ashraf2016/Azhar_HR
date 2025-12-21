@@ -522,12 +522,20 @@ import { generateStatePDF } from "../components/useGenerateState";
 // import { getData } from "../services/api";
 import axiosInstance from "@/axiosInstance";
 import Sidebar from "../components/Sidebar";
+import useRequireAuth from "../lib/useRequireAuth";
+import { usePermissions } from "../contexts/PermissionsContext";
+import CompletionModal from "../components/CompletionModal";
+import RejectModal from "../components/RejectModal";
 
 const EmployeeProfilePage = () => {
   const { employeeId } = useParams();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ensure user is authenticated before fetching profile
+  useRequireAuth();
 
   // حالات توليد PDF
   const [isGeneratingCareer, setIsGeneratingCareer] = useState(false);
@@ -546,6 +554,26 @@ const EmployeeProfilePage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
 
+  // Completion Modal
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [selectedAction, setSelectedAction] = useState(null);
+  const [memoDate, setMemoDate] = useState("");
+  const [isSubmittingCompletion, setIsSubmittingCompletion] = useState(false);
+
+  // Reject Modal
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedActionForReject, setSelectedActionForReject] = useState(null);
+  const [isSubmittingReject, setIsSubmittingReject] = useState(false);
+
+  // Daily Reports
+  const [dailyReports, setDailyReports] = useState({
+    jobs: [],
+    deputations: [],
+    punishments: [],
+    secondments: [],
+    holidays: [],
+  });
+
 
   const confirmDelete = (jobId) => {
     setSelectedJobId(jobId);
@@ -555,6 +583,150 @@ const EmployeeProfilePage = () => {
   const showPopup = (message, type = "success") => {
     setPopupMessage({ message, type });
     setTimeout(() => setPopupMessage(null), 3000);
+  };
+
+  // Open completion modal
+  const handleCompleteAction = (action, actionType) => {
+    setSelectedAction({ ...action, actionType });
+    setMemoDate("");
+    setShowCompletionModal(true);
+  };
+
+  // Open reject modal
+  const handleRejectAction = (action, actionType) => {
+    setSelectedActionForReject({ ...action, actionType });
+    setShowRejectModal(true);
+  };
+
+  // Submit completion
+  const handleSubmitCompletion = async () => {
+    if (!memoDate) {
+      showPopup("يرجى إدخال تاريخ الملاحظة", "error");
+      return;
+    }
+
+    if (!selectedAction) {
+      showPopup("حدث خطأ: لم يتم تحديد الإجراء", "error");
+      return;
+    }
+
+    setIsSubmittingCompletion(true);
+    try {
+      // Map action type to endpoint and get action ID
+      let endpoint = "";
+      let actionId = null;
+
+      if (selectedAction.actionType === "job") {
+        endpoint = "/procedures/submit-job";
+        actionId = selectedAction.id || selectedAction.jobId;
+      } else if (selectedAction.actionType === "deput") {
+        endpoint = "/procedures/submit-deputation";
+        actionId = selectedAction.id || selectedAction.deputationId;
+      } else if (selectedAction.actionType === "punish") {
+        endpoint = "/procedures/submit-punishment";
+        actionId = selectedAction.id || selectedAction.punishmentId;
+      } else if (selectedAction.actionType === "second") {
+        endpoint = "/procedures/submit-secondment";
+        actionId = selectedAction.id || selectedAction.secondmentId;
+      } else if (selectedAction.actionType === "holiday") {
+        endpoint = "/procedures/submit-holiday";
+        actionId = selectedAction.id || selectedAction.holidayId;
+      }
+
+      // Send request with id and memo_date
+      const response = await axiosInstance.put(endpoint, {
+        id: actionId,
+        memo_date: memoDate,
+      });
+
+      showPopup("تم إتمام الإجراء بنجاح ✅", "success");
+      setShowCompletionModal(false);
+      setMemoDate("");
+      setSelectedAction(null);
+
+      // Refresh the daily reports
+      axiosInstance.get(`/employee/daily-reports/${employeeId}`)
+        .then((response) => {
+          const data = response.data?.rows || {
+            jobs: [],
+            deputations: [],
+            punishments: [],
+            secondments: [],
+            holidays: [],
+          };
+          setDailyReports(data);
+        })
+        .catch((error) => {
+          console.error("Error refetching daily reports:", error);
+        });
+    } catch (error) {
+      console.error("Error completing action:", error);
+      showPopup("حدث خطأ أثناء إتمام الإجراء ❌", "error");
+    } finally {
+      setIsSubmittingCompletion(false);
+    }
+  };
+
+  // Submit reject
+  const handleSubmitReject = async () => {
+    if (!selectedActionForReject) {
+      showPopup("حدث خطأ: لم يتم تحديد الإجراء", "error");
+      return;
+    }
+
+    setIsSubmittingReject(true);
+    try {
+      // Map action type to endpoint and get action ID
+      let endpoint = "";
+      let actionId = null;
+
+      if (selectedActionForReject.actionType === "job") {
+        endpoint = "/procedures/reject-job";
+        actionId = selectedActionForReject.id || selectedActionForReject.jobId;
+      } else if (selectedActionForReject.actionType === "deput") {
+        endpoint = "/procedures/reject-deputation";
+        actionId = selectedActionForReject.id || selectedActionForReject.deputationId;
+      } else if (selectedActionForReject.actionType === "punish") {
+        endpoint = "/procedures/reject-punishment";
+        actionId = selectedActionForReject.id || selectedActionForReject.punishmentId;
+      } else if (selectedActionForReject.actionType === "second") {
+        endpoint = "/procedures/reject-secondment";
+        actionId = selectedActionForReject.id || selectedActionForReject.secondmentId;
+      } else if (selectedActionForReject.actionType === "holiday") {
+        endpoint = "/procedures/reject-holiday";
+        actionId = selectedActionForReject.id || selectedActionForReject.holidayId;
+      }
+
+      // Send request with id only (no memo_date)
+      const response = await axiosInstance.put(endpoint, {
+        id: actionId,
+      });
+
+      showPopup("تم رفض الإجراء بنجاح ✅", "success");
+      setShowRejectModal(false);
+      setSelectedActionForReject(null);
+
+      // Refresh the daily reports
+      axiosInstance.get(`/employee/daily-reports/${employeeId}`)
+        .then((response) => {
+          const data = response.data?.rows || {
+            jobs: [],
+            deputations: [],
+            punishments: [],
+            secondments: [],
+            holidays: [],
+          };
+          setDailyReports(data);
+        })
+        .catch((error) => {
+          console.error("Error refetching daily reports:", error);
+        });
+    } catch (error) {
+      console.error("Error rejecting action:", error);
+      showPopup("حدث خطأ أثناء رفض الإجراء ❌", "error");
+    } finally {
+      setIsSubmittingReject(false);
+    }
   };
 
   // const getLatestCareerEntry = (careerProgression) => {
@@ -693,6 +865,24 @@ const EmployeeProfilePage = () => {
         setEmployee(null);
       })
       .finally(() => setLoading(false));
+  }, [employeeId]);
+
+  // جلب التقارير اليومية
+  useEffect(() => {
+    axiosInstance.get(`/employee/daily-reports/${employeeId}`)
+      .then((response) => {
+        const data = response.data?.rows || {
+          jobs: [],
+          deputations: [],
+          punishments: [],
+          secondments: [],
+          holidays: [],
+        };
+        setDailyReports(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching daily reports:", error);
+      });
   }, [employeeId]);
 
   const formatDate = (dateString) => {
@@ -945,61 +1135,210 @@ const EmployeeProfilePage = () => {
           {/* Daily Actions */}
           <div className="mt-8 bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">الإجراءات اليومية</h2>
-            {employee.dailyActions && employee.dailyActions.length > 0 ? (
+            {dailyReports && (dailyReports.jobs.length > 0 || dailyReports.deputations.length > 0 || dailyReports.punishments.length > 0 || dailyReports.secondments.length > 0 || dailyReports.holidays.length > 0) ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        رقم
+                        الاجراء
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        المنصب
+                        النوع
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        القسم
+                        التاريخ
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        تاريخ التعيين
+                        الحالة
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        حالة الطلب
-                      </th>
-
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ملاحظات
-                      </th>
+                      {hasPermission("employee:update") && (
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          إجراء
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {[...employee.dailyActions]
-                      .filter((action) => action.JobStatus?.toLowerCase() === "pending")
-                      .sort(
-                        (a, b) =>
-                          new Date(b.dateOfOccupation) - new Date(a.dateOfOccupation)
-                      )
-                      .map((action, index) => (
-                        <tr key={action.jobId || index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                            {index + 1}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {action.jobTitle || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {action.department || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {formatDate(action.dateOfOccupation)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {/* Jobs */}
+                    {dailyReports.jobs && dailyReports.jobs.map((job, index) => (
+                      <tr key={`job-${index}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          ترقية
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {job.job_title || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(job.start_date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
                             قيد التنفيذ
+                          </span>
+                        </td>
+                        {hasPermission("employee:update") && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <button
+                              onClick={() => handleCompleteAction(job, "job")}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
+                            >
+                              إتمام
+                            </button>
+                            <button
+                              onClick={() => handleRejectAction(job, "job")}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs font-semibold"
+                            >
+                              رفض
+                            </button>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {action.notes || "-"}
+                        )}
+                      </tr>
+                    ))}
+
+                    {/* Deputations */}
+                    {dailyReports.deputations && dailyReports.deputations.map((deput, index) => (
+                      <tr key={`deput-${index}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          إعارة
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {deput.deputation_type || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(deput.execution_order_date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                            قيد التنفيذ
+                          </span>
+                        </td>
+                        {hasPermission("employee:update") && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <button
+                              onClick={() => handleCompleteAction(deput, "deput")}
+                              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs font-semibold"
+                            >
+                              إتمام
+                            </button>
+                            <button
+                              onClick={() => handleRejectAction(deput, "deput")}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs font-semibold"
+                            >
+                              رفض
+                            </button>
                           </td>
-                        </tr>
-                      ))}
+                        )}
+                      </tr>
+                    ))}
+
+                    {/* Punishments */}
+                    {dailyReports.punishments && dailyReports.punishments.map((punish, index) => (
+                      <tr key={`punish-${index}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          جزاء
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {punish.punishment_type || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(punish.execution_order_date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                            قيد التنفيذ
+                          </span>
+                        </td>
+                        {hasPermission("employee:update") && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <button
+                              onClick={() => handleCompleteAction(punish, "punish")}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
+                            >
+                              إتمام
+                            </button>
+                            <button
+                              onClick={() => handleRejectAction(punish, "punish")}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs font-semibold"
+                            >
+                              رفض
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+
+                    {/* Secondments */}
+                    {dailyReports.secondments && dailyReports.secondments.map((second, index) => (
+                      <tr key={`second-${index}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          انتداب
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          انتداب موظف
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(second.start_date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                            قيد التنفيذ
+                          </span>
+                        </td>
+                        {hasPermission("employee:update") && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <button
+                              onClick={() => handleCompleteAction(second, "second")}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
+                            >
+                              إتمام
+                            </button>
+                            <button
+                              onClick={() => handleRejectAction(second, "second")}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs font-semibold"
+                            >
+                              رفض
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+
+                    {/* Holidays */}
+                    {dailyReports.holidays && dailyReports.holidays.map((holiday, index) => (
+                      <tr key={`holiday-${index}`}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          إجازة
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {holiday.grant_type || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(holiday.execution_order_date)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-semibold">
+                            قيد التنفيذ
+                          </span>
+                        </td>
+                        {hasPermission("employee:update") && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2 flex">
+                            <button
+                              onClick={() => handleCompleteAction(holiday, "holiday")}
+                              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs font-semibold"
+                            >
+                              إتمام
+                            </button>
+                            <button
+                              onClick={() => handleRejectAction(holiday, "holiday")}
+                              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs font-semibold"
+                            >
+                              رفض
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -1009,6 +1348,26 @@ const EmployeeProfilePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Completion Modal */}
+      <CompletionModal
+        showModal={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        selectedAction={selectedAction}
+        memoDate={memoDate}
+        setMemoDate={setMemoDate}
+        isSubmitting={isSubmittingCompletion}
+        onSubmit={handleSubmitCompletion}
+      />
+
+      {/* Reject Modal */}
+      <RejectModal
+        showModal={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        selectedAction={selectedActionForReject}
+        isSubmitting={isSubmittingReject}
+        onSubmit={handleSubmitReject}
+      />
     </div>
   );
 };

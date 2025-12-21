@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom"; 
-import Logo from "../assets/Logo.png";
+import Logo from "../../assets/Logo.png";
+import { usePermissions } from "../../contexts/PermissionsContext";
 
 const EmployeeCareersPage = () => {
+  const { hasPermission } = usePermissions();
   const { employeeID } = useParams();
   const navigate = useNavigate(); //  لتفعيل الرجوع للخلف
   const [careers, setCareers] = useState([]);

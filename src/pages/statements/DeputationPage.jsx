@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.png";
+import Logo from "../../assets/Logo.png";
 import axiosInstance from "@/axiosInstance";
+import useRequireAuth from "../../lib/useRequireAuth";
+import { usePermissions } from "../../contexts/PermissionsContext";
 
-const EmployeeHolidaysPage = () => {
+const EmployeeDeputationPage = () => {
+    useRequireAuth();
+    const { hasPermission } = usePermissions();
     const { employeeID } = useParams();
     const navigate = useNavigate();
-    const [holidays, setHolidays] = useState([]); 
+    const [deputation, setDeputation] = useState([]);
     const [employeeInfo, setEmployeeInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -17,45 +21,43 @@ const EmployeeHolidaysPage = () => {
 
     // States للـ Popup
     const [showPopup, setShowPopup] = useState(false);
-    // سيحتفظ هذا بـ ID الإجازة (h.id) عند الضغط على زر الحذف
-    const [selectedSerial, setSelectedSerial] = useState(null); 
+    const [selectedSerial, setSelectedSerial] = useState(null);
 
-    // جلب بيانات الإجازات
-    const fetchHolidays = async () => { 
+    // جلب البيانات
+    const fetchDeputation = async () => {
         try {
             setLoading(true);
             setError("");
             const res = await axiosInstance.get(
                 `/employee/statement/${employeeID}`,
             );
-            // لاحظي: تم تغيير المصدر إلى res.data.holidays بناءً على الكود الذي أرسلتيه
-            setHolidays(res.data.holidays); 
+
+            setDeputation(res.data.deputationData);
             setEmployeeInfo(res.data.employeeInfo);
         } catch (err) {
             console.error(err);
-            setError(" حدث خطأ أثناء تحميل بيانات الإجازات ."); 
+            setError(" حدث خطأ أثناء تحميل بيانات الاعارات .");
         } finally {
             setLoading(false);
         }
     };
 
     // دالة تنفيذ عملية الحذف
-    const handleDelete = async (holidayId) => { // ID الإجازة
+    const handleDelete = async (serialNumber) => {
         setIsDeleting(true);
         setDeleteMessage("");
 
         try {
-            // 💡 التعديل: استخدام المسار المطلوب /holidays/{id}
-            const url = `/holidays/${holidayId}`; 
+            const url = `/deputation/${employeeID}/${serialNumber}`;
             await axiosInstance.delete(url);
 
-            setDeleteMessage("✅ تم حذف الإجازة بنجاح!"); 
-            await fetchHolidays();
+            setDeleteMessage("✅ تم حذف الإعارة بنجاح!");
+            await fetchDeputation();
         } catch (err) {
             console.error("Delete Error:", err);
             const message = err.response?.data?.message;
 
-            if (message === "Access token required" || message === "Invalid or expired token" || message ==="Access denied. Required permission: holiday:delete") {
+            if (message === "Access token required" || message === "Invalid or expired token" || message ==="Access denied. Required permission: deputation:delete") {
                 setDeleteMessage("❌ فشل الحذف: لا تملك الصلاحية الكافية لإجراء هذا الحذف.");
             } else {
                 setDeleteMessage("❌ حدث خطأ غير متوقع أثناء عملية الحذف.");
@@ -67,26 +69,13 @@ const EmployeeHolidaysPage = () => {
         }
     };
 
-    // 💡 دالة لفتح نافذة تأكيد الحذف
-    const confirmDelete = (holidayId) => {
-        setSelectedSerial(holidayId);
-        setShowPopup(true);
-    };
-
-    // 💡 دالة التعديل
-    const handleEditClick = (holidayData) => {
-        // نفترض أن serial_number هو المعرّف الفريد المطلوب في مسار التعديل
-        navigate(`/holidays/edit/${employeeID}/${holidayData.id}`, {
-            state: { holidayData: holidayData }
-        });
-    };
-
     useEffect(() => {
-        if (employeeID) fetchHolidays();
+        if (employeeID) fetchDeputation();
     }, [employeeID]);
 
     const formatDate = (dateStr) => {
         if (!dateStr || dateStr.includes("1899")) return "-";
+        // تحويل التاريخ إلى صيغة قابلة للعرض، وتجاهل أي توقيتات
         return new Date(dateStr).toLocaleDateString("ar-EG");
     };
 
@@ -109,7 +98,7 @@ const EmployeeHolidaysPage = () => {
                         alt="Al-Azhar University Logo"
                         className="w-24 h-24 object-contain mb-2"
                     />
-                    <h1 className="text-2xl font-bold text-gray-800">بيان حالة بالإجازات </h1> 
+                    <h1 className="text-2xl font-bold text-gray-800">بيان حالة بالإعارات </h1>
                 </div>
 
                 <div className="text-left leading-tight text-gray-800" dir="ltr">
@@ -167,7 +156,7 @@ const EmployeeHolidaysPage = () => {
                 </p>
             )}
 
-            {/* جدول الإجازات */}
+            {/* جدول الإعارات */}
             <div className="px-6 pb-10 mt-8">
                 {loading ? (
                     <p className="text-center text-gray-600">جاري التحميل...</p>
@@ -179,65 +168,65 @@ const EmployeeHolidaysPage = () => {
                             <thead className="bg-gray-100 text-gray-700 font-semibold">
                                 <tr>
                                     <th className="px-4 py-2 border text-center">م</th>
-                                    <th className="px-4 py-2 border text-center">نوع الإجازة</th>
-                                    <th className="px-4 py-2 border text-center">سبب الاجازة</th>
-                                    <th className="px-4 py-2 border text-center">مدة الإجازة (يوم)</th>
-                                    <th className="px-4 py-2 border text-center">تاريخ المنح</th>
-                                    <th className="px-4 py-2 border text-center">من</th>
-                                    <th className="px-4 py-2 border text-center">إلى</th>
-                                    <th className="px-4 py-2 border text-center">رقم أمر التنفيذ</th>
-                                    <th className="px-4 py-2 border text-center">تاريخ أمر التنفيذ</th>
-                                    <th className="px-4 py-2 border text-center">حالة السفر</th>
-                                    <th className="px-4 py-2 border text-center">ملاحظات</th>
-                                    <th className="px-4 py-2 border text-center print:hidden">تعديل</th> 
-                                    <th className="px-4 py-2 border text-center print:hidden">حذف</th> 
+                                    <th className="px-4 py-2 border text-center">نوع الإعارة</th>
+                                    <th className="px-4 py-2 border text-center">الدولة المعار إليها</th>
+                                    <th className="px-4 py-2 border text-center">جهة الإعارة</th>
+                                    <th className="px-4 py-2 border text-center">تاريخ الإعارة</th>
+                                    <th className="px-4 py-2 border text-center">حتى تاريخ</th>
+                                    <th className="px-4 py-2 border text-center">عام التجديد</th>
+                                    <th className="px-4 py-2 border text-center">تاريخ استلام العمل</th>
+                                    <th className="px-4 py-2 border text-center print:hidden">إجراء</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {holidays.length === 0 ? (
+                                {deputation.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan="13" // 💡 تم التعديل ليطابق عدد الأعمدة (13)
+                                            colSpan="9"
                                             className="text-center py-6 text-gray-600 font-medium"
                                         >
-                                            لا توجد إجازات لهذا الموظف
+                                            لا توجد اعارات لهذا الموظف
                                         </td>
                                     </tr>
                                 ) : (
-                                    holidays.map((h, index) => (
-                                        <tr key={h.id || index} className="hover:bg-gray-50 transition">
-                                            <td className="px-4 py-4 border text-center">{h.serial_number || index + 1}</td>
-                                            <td className="px-4 py-4 border text-right">{h.grant_type || "-"}</td>
-                                            <td className="px-4 py-4 border text-right">{h.leave_type || "-"}</td>
-                                            <td className="px-4 py-4 border text-center">{h.duration_days || "-"}</td>
-                                            <td className="px-4 py-4 border text-right">{formatDate(h.leave_method)}</td>
-                                            <td className="px-4 py-4 border text-right">{formatDate(h.from_date)}</td>
-                                            <td className="px-4 py-4 border text-right">{formatDate(h.to_date)}</td>
-                                            <td className="px-4 py-4 border text-center">{h.execution_order_number || "-"}</td>
-                                            <td className="px-4 py-4 border text-right">{formatDate(h.execution_order_date)}</td>
-                                            <td className="px-4 py-4 border text-right">{h.travel_status || "-"}</td>
-                                            <td className="px-4 py-4 border text-right">{h.notes || "-"}</td>
-                                        
-                                            {/* عمود التعديل */}
-                                            <td className="px-4 py-4 border text-center print:hidden">
+                                    deputation.map((h, index) => (
+                                        <tr key={index} className="hover:bg-gray-50 transition">
+                                            <td className="px-3 py-2 border text-center">{index + 1}</td>
+                                            <td className="px-3 py-2 border">{h.deputationType || "-"}</td>
+                                            <td className="px-3 py-2 border">{h.deputedCountry || "-"}</td>
+                                            <td className="px-3 py-2 border text-center">{h.universityName || "-"}</td>
+                                            <td className="px-3 py-2 border">{formatDate(h.deputationDate) || "-"}</td>
+                                            <td className="px-3 py-2 border">{formatDate(h.deputationEndDate) || "-"}</td>
+                                            <td className="px-3 py-2 border">{h.renewalYear || "-"}</td>
+                                            <td className="px-3 py-2 border">{formatDate(h.deputationStartDate) || "-"}</td>
+
+                                            <td className="px-3 py-2 border text-center print:hidden">
+                                                {/* زر التعديل المُحدث ليمرر بيانات الإعارة */}
+                                                {hasPermission("deputation:update") && (
                                                 <button
-                                                    onClick={() => handleEditClick(h)} 
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg text-xs transition duration-200 font-semibold"
-                                                    title="تعديل الإجازة"
+                                                    onClick={() => {
+                                                        // تمرير كائن البيانات كاملاً عبر state لتجنب طلب GET الفاشل
+                                                        navigate(`/deputation/edit/${employeeID}/${h.serialNumber}`, {
+                                                            state: { deputationData: h } 
+                                                        });
+                                                    }}
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer text-xs font-semibold px-3 py-1 rounded-lg transition duration-200 ml-2"
                                                 >
                                                     ✏️ تعديل
-                                                </button>
-                                            </td>
-                                            
-                                            {/* عمود الحذف */}
-                                            <td className="px-4 py-4 border text-center print:hidden">
+                                                </button>)}
+
+                                                {/* زر الحذف الحالي */}
+                                                {hasPermission("deputation:delete") && (
                                                 <button
-                                                    onClick={() => confirmDelete(h.id)} // 💡 يستخدم h.id
-                                                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-xs transition duration-200 font-semibold"
-                                                    title="حذف الإجازة"
+                                                    onClick={() => {
+                                                        setSelectedSerial(h.serialNumber);
+                                                        setShowPopup(true);
+                                                    }}
+                                                    disabled={isDeleting}
+                                                    className="bg-red-500 hover:bg-red-600 text-white cursor-pointer text-xs font-semibold px-3 py-1 rounded-lg transition duration-200 disabled:opacity-50"
                                                 >
-                                                    🗑️ حذف
-                                                </button>
+                                                    {isDeleting ? "جاري..." : "🗑️ حذف"}
+                                                </button>)}
                                             </td>
                                         </tr>
                                     ))
@@ -271,8 +260,7 @@ const EmployeeHolidaysPage = () => {
                                 className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
                                 onClick={async () => {
                                     setShowPopup(false);
-                                    // 💡 نمرر ID الإجازة المخزّن في selectedSerial إلى دالة الحذف
-                                    await handleDelete(selectedSerial); 
+                                    await handleDelete(selectedSerial);
                                 }}
                             >
                                 حذف
@@ -309,4 +297,4 @@ const EmployeeHolidaysPage = () => {
     );
 };
 
-export default EmployeeHolidaysPage;
+export default EmployeeDeputationPage;

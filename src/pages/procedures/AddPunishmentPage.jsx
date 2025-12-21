@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "@/axiosInstance";
+import CustomDropdown from "@/components/CustomDropdown";
 
 // ========================= مكون حقل الإدخال الصغير (مساعد) =======================
 const InputField = ({ label, name, value, onChange, type = "text", readOnly = false, required = false, children }) => (
     <div className="flex flex-col">
-        <label htmlFor={name} className="text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={name} className="text-lg font-medium text-gray-700 mb-1">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children || (
@@ -17,7 +18,7 @@ const InputField = ({ label, name, value, onChange, type = "text", readOnly = fa
                 onChange={onChange}
                 readOnly={readOnly}
                 required={required}
-                className={`p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${readOnly ? 'bg-gray-100' : 'bg-white'}`}
+                className={`p-2 w-full border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${readOnly ? 'bg-gray-100' : 'bg-white'}`}
             />
         )}
     </div>
@@ -59,9 +60,10 @@ const AddPunishmentPage = () => {
         employee_id: employeeID,
         applicant_name: "",
         serial_number: "",
+        status: "pending",
         area_code: "",
         area_name: "",
-        reasons: "", // سبب الجزاء (من الخيارات)
+        type: "", // سبب الجزاء (من الخيارات)
         execution_order: "",
         execution_order_date: "",
         deputation_reasons: "", // سبب الانتداب (اسم حقل مضلل، يستخدم كملاحظة إضافية)
@@ -76,11 +78,11 @@ const AddPunishmentPage = () => {
         try {
             const res = await axiosInstance.get("/punishments/options");
             
-            if (res.data && Array.isArray(res.data.area_names)) {
-                 const cleanOptions = res.data.area_names
+            if (res.data && Array.isArray(res.data.grant_types)) {
+                 const cleanOptions = res.data.grant_types
                      .map(opt => opt.trim())
                      .filter(opt => opt); 
-                setPunishmentOptions([...new Set(cleanOptions)].sort());
+                setPunishmentOptions([...new Set(cleanOptions)]);
             }
 
         } catch (err) {
@@ -126,6 +128,9 @@ const AddPunishmentPage = () => {
                         serial_number: details.serial_number || "",
                         area_code: details.area_code || "",
                         area_name: details.area_name || "",
+                        memo_date: formatToHtmlDate(details.memo_date),
+                        type: details.type || "",
+                        status: details.status || "pending",
                         reasons: details.reasons || "", 
                         execution_order: details.execution_order || "", 
                         execution_order_date: formatToHtmlDate(details.execution_order_date), 
@@ -161,7 +166,7 @@ const AddPunishmentPage = () => {
         setMessage("");
 
         // تحقق بسيط من الحقول المطلوبة
-        if (!newPunishmentData.reasons || !newPunishmentData.execution_order_date) {
+        if (!newPunishmentData.type || !newPunishmentData.execution_order_date) {
             setMessage('❌ الرجاء ملء حقول سبب الجزاء وتاريخ أمر التنفيذ المطلوبة.');
             setIsSaving(false);
             return;
@@ -173,6 +178,7 @@ const AddPunishmentPage = () => {
                 employee_id: employeeID,
                 // التأكد من أن جميع الحقول المرسلة غير فارغة
                 serial_number: newPunishmentData.serial_number || "",
+                status: newPunishmentData.status || "pending",
                 area_code: newPunishmentData.area_code || "",
                 area_name: newPunishmentData.area_name || "",
                 execution_order: newPunishmentData.execution_order || "",
@@ -215,27 +221,27 @@ const AddPunishmentPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 py-10 flex justify-center items-start" >
-             <div className="">
+        <div className="min-h-screen p-8 bg-[#fdfbff] bg-[url(/p-bg.png)] flex flex-col items-center">
+            <div className="w-full max-w-4xl flex justify-end text-lg p-2">
                 <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-xl cursor-pointer shadow transition duration-200"
+                    onClick={() => (employeeID ? navigate(`/profile/${employeeID}`) : navigate(-1))}
+                    className="text-blue-600 hover:underline cursor-pointer"
                 >
-                    ⬅️ رجوع
+                    ← العودة إلى صفحة الموظف
                 </button>
             </div>
-            <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-4xl border border-gray-200" dir="rtl">
+            <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-4xl border border-gray-200 relative" dir="rtl">
+                
                 <h1 className="text-3xl font-bold text-center text-indigo-800 mb-8">
                     {pageTitle}
                 </h1>
                 
                 <form onSubmit={handleSavePunishment}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 text-lg">
 
                         {/* الصف الأول (بيانات ثابتة للموظف) */}
                         <div className="col-span-full border-b pb-4 mb-2">
-                            <h3 className="text-lg font-semibold text-indigo-600">بيانات الموظف الأساسية</h3>
+                            <h3 className="text-xl font-semibold text-indigo-600">بيانات الموظف الأساسية</h3>
                         </div>
                         <InputField
                             label="رقم ملف الجامعة"
@@ -249,43 +255,36 @@ const AddPunishmentPage = () => {
                             value={newPunishmentData.applicant_name || employeeName}
                             readOnly={true}
                         />
-                        <InputField
+                        {/* <InputField
                             label="الرقم التسلسلي"
                             name="serial_number"
                             value={newPunishmentData.serial_number}
                             onChange={handleInputChange}
-                        />
+                        /> */}
                         
                         {/* الصف الثاني (معلومات الجزاء الرئيسية) */}
                         <div className="col-span-full border-b pb-4 my-2">
-                            <h3 className="text-lg font-semibold text-indigo-600">تفاصيل الجزاء</h3>
+                            <h3 className="text-xl font-semibold text-indigo-600">تفاصيل الجزاء</h3>
                         </div>
 
                         {/* حقل سبب الجزاء (Select) */}
                         <InputField
                             label="سبب الجزاء"
-                            name="reasons"
+                            name="type"
                             required={true}
                         >
-                            <select
-                                id="reasons"
-                                name="reasons"
-                                value={newPunishmentData.reasons}
-                                onChange={handleInputChange}
-                                required
-                                className="p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                            >
-                                <option value="">اختر سبب الجزاء</option>
-                                {punishmentOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
-                                ))}
-                            </select>
-                            {punishmentOptions.length === 0 && !loading && (
-                                 <p className="text-xs text-orange-500 mt-1">فشل تحميل خيارات الجزاء.</p>
-                            )}
+                                <CustomDropdown
+                                    options={punishmentOptions.map(opt => ({ value: opt, label: opt }))}
+                                    value={newPunishmentData.type}
+                                    onChange={(val) => setNewPunishmentData(prev => ({ ...prev, type: val }))}
+                                    placeholder="اختر سبب الجزاء"
+                                />
+                                {punishmentOptions.length === 0 && !loading && (
+                                    <p className="text-xs text-orange-500 mt-1">فشل تحميل خيارات الجزاء.</p>
+                                )}
                         </InputField>
 
-                        <InputField
+                        {/* <InputField
                             label="رمز المنطقة"
                             name="area_code"
                             value={newPunishmentData.area_code}
@@ -296,7 +295,7 @@ const AddPunishmentPage = () => {
                             name="area_name"
                             value={newPunishmentData.area_name}
                             onChange={handleInputChange}
-                        />
+                        /> */}
                         <InputField
                             label="رقم أمر التنفيذ"
                             name="execution_order"
@@ -309,11 +308,19 @@ const AddPunishmentPage = () => {
                             value={newPunishmentData.execution_order_date}
                             onChange={handleInputChange}
                             type="date"
-                            required={true}
+                            required={false}
+                        />
+                        <InputField
+                            label="تاريخ إصدار المذكرة"
+                            name="memo_date"
+                            value={newPunishmentData.memo_date}
+                            onChange={handleInputChange}
+                            type="date"
+                            required={false}
                         />
                         
                         {/* حقل سبب الانتداب (ملاحظات أوسع) */}
-                        <div className="col-span-full flex flex-col">
+                        {/* <div className="col-span-full flex flex-col">
                             <label htmlFor="deputation_reasons" className="text-sm font-medium text-gray-700 mb-1">
                                 سبب الانتداب (إن وجد)
                             </label>
@@ -325,7 +332,7 @@ const AddPunishmentPage = () => {
                                 onChange={handleInputChange}
                                 className="p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                             />
-                        </div>
+                        </div> */}
                         {/* حقل الملاحظات (ملاحظات أوسع) */}
                         <div className="col-span-full flex flex-col">
                             <label htmlFor="notes" className="text-sm font-medium text-gray-700 mb-1">
@@ -340,7 +347,6 @@ const AddPunishmentPage = () => {
                                 className="p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
-
                     </div>
 
                     {/* أزرار الإجراءات */}

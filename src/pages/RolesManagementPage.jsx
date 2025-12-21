@@ -664,7 +664,7 @@ const RolesManagementPage = () => {
     { key: "punishments", label: "الجزاءات" },
     { key: "career", label: "التدرج الوظيفي" },
     { key: "employee", label: "عضو هيئة التدريس" },
-    { key: "user", label: "الموظف " },
+    // { key: "user", label: "الموظف " },
   ];
 
   const actions = [

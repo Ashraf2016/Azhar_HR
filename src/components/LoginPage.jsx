@@ -51,12 +51,11 @@ const LoginPage = () => {
 
       const userInfo = userInfoResponse.data;
 
-      localStorage.setItem("permissions", JSON.stringify(userInfo.permissions));
+      localStorage.setItem("permissions", JSON.stringify(userInfo.permissions)); 
       localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
-      navigate("/");
+      // window.location.href = "/";
     
-      
     } else {
         setError(data.message || "بيانات الدخول غير صحيحة");
       }
@@ -68,6 +67,7 @@ const LoginPage = () => {
       }
     } finally {
       setLoading(false);
+      window.location.href = "/";
     }
   };
 
@@ -85,7 +85,7 @@ const LoginPage = () => {
       </div>
 
       <div className="absolute inset-0 bg-black opacity-20"></div>
-      <div className="text-center relative z-10 mx-auto px-6 max-w-md px-4 sm:px-6 md:px-8">
+      <div className="text-center relative z-10 mx-auto max-w-md px-4 sm:px-6 md:px-8">
         <h1 className="text-3xl font-bold text-white mb-4">يرجى تسجيل الدخول</h1>
         <p className="text-gray-200 mb-6">
           للوصول إلى دليل الموظفين، يرجى تسجيل الدخول أولاً.

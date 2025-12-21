@@ -53,6 +53,7 @@
 
 
 import { createContext, useContext, useState, useEffect } from "react";
+import axiosInstance from "@/axiosInstance";
 
 const PermissionsContext = createContext();
 
@@ -61,16 +62,46 @@ export const PermissionsProvider = ({ children }) => {
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    const storedPermissions = JSON.parse(localStorage.getItem("permissions"));
-    const storedUserInfo = JSON.parse(localStorage.getItem("userInfo"));
-console.log(storedUserInfo?.user?.role)
-    if (storedPermissions) {
-      setPermissions(storedPermissions);
-    }
+    let mounted = true;
 
-    if (storedUserInfo?.user?.role) {
-      setRole(storedUserInfo.user.role);
-    }
+    const loadFromServer = async () => {
+      try {
+        const res = await axiosInstance.get("/users/userInfo");
+        const user = res.data?.user || {};
+        const perms = res.data?.permissions || [];
+        if (!mounted) return;
+        setPermissions(perms);
+        setRole(user.role || "");
+
+        // cache locally for quick reloads
+        try {
+          localStorage.setItem("permissions", JSON.stringify(perms));
+          const si = JSON.parse(localStorage.getItem("userInfo")) || {};
+          si.user = si.user || {};
+          si.user.role = user.role || si.user.role;
+          localStorage.setItem("userInfo", JSON.stringify(si));
+        } catch (e) {
+          console.debug("PermissionsContext: failed to cache permissions locally", e);
+        }
+      } catch (err) {
+        console.warn("PermissionsContext: failed to fetch /users/userInfo, falling back to localStorage", err);
+        // fallback to localStorage if available
+        try {
+          const storedPermissions = JSON.parse(localStorage.getItem("permissions"));
+          const storedUserInfo = JSON.parse(localStorage.getItem("userInfo"));
+          if (storedPermissions) setPermissions(storedPermissions);
+          if (storedUserInfo?.user?.role) setRole(storedUserInfo.user.role);
+        } catch (e) {
+          console.debug("PermissionsContext: no local cache available", e);
+        }
+      }
+    };
+
+    loadFromServer();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
  
@@ -86,8 +117,32 @@ console.log(storedUserInfo?.user?.role)
     localStorage.setItem("userInfo", JSON.stringify(userInfo));
   };
 
+  // re-fetch permissions from server (useful after role change)
+  const reloadPermissions = async () => {
+    try {
+      const res = await axiosInstance.get("/users/userInfo");
+      const user = res.data?.user || {};
+      const perms = res.data?.permissions || [];
+      setPermissions(perms);
+      setRole(user.role || "");
+      // update local cache
+      localStorage.setItem("permissions", JSON.stringify(perms));
+      const si = JSON.parse(localStorage.getItem("userInfo")) || {};
+      si.user = si.user || {};
+      si.user.role = user.role || si.user.role;
+      localStorage.setItem("userInfo", JSON.stringify(si));
+      return { user, permissions: perms };
+    } catch (err) {
+      console.warn("PermissionsContext.reloadPermissions failed", err);
+      throw err;
+    }
+  };
 
-  const hasPermission = (perm) => permissions?.includes(perm);
+
+  const hasPermission = (perm) => {
+    if (!perm) return false;
+    return Array.isArray(permissions) && permissions.includes(perm);
+  };
 
   return (
     <PermissionsContext.Provider value={{
@@ -96,6 +151,7 @@ console.log(storedUserInfo?.user?.role)
       setPermissions,
       setRole,
       updatePermissions,
+      reloadPermissions,
       hasPermission
     }}>
       {children}

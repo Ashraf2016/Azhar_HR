@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axiosInstance from "@/axiosInstance";
+import useRequireAuth from "../lib/useRequireAuth";
 
 const CreateUserPage = () => {
+  useRequireAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

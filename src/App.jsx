@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import { useEffect } from "react";
 import { setNavigate } from "./navigate";
 
@@ -9,31 +10,35 @@ import EmployeeListPage from "./pages/EmployeeListPage";
 import CreateUserPage from "./pages/CreateUserPage";
 import EmployeeProfilePage from "./pages/EmployeeProfilePage";
 import AssistantsPage from "./pages/AssistantsPage";
-import Promotion from "./pages/Promotion";
-import EndService from "./pages/EndService";
+import Promotion from "./pages/procedures/Promotion";
+import EndService from "./pages/procedures/EndService";
 import Termination from "./pages/Termination";
-import EmployeeHolidaysPage from "./pages/HolidaysPage";
-import CreateNewHoliday from "./pages/CreateNewHoliday";
-import EmployeePunishmentsPage from './pages/EmployeePunishmentsPage';
-import AddPunishmentPage from './pages/AddPunishmentPage';
-import EmployeeCareersPage from "./pages/CareersPage";
-import EmployeeDeputationPage from "./pages/DeputationPage";
-import EmployeeAllStatesPage from "./pages/AllStatePage";
+import EmployeeHolidaysPage from "./pages/statements/HolidaysPage";
+import CreateNewHoliday from "./pages/procedures/CreateNewHoliday";
+import EmployeePunishmentsPage from './pages/statements/EmployeePunishmentsPage';
+import AddPunishmentPage from './pages/procedures/AddPunishmentPage';
+import EmployeeCareersPage from "./pages/statements/CareersPage";
+import EmployeeDeputationPage from "./pages/statements/DeputationPage";
+import EmployeeAllStatesPage from "./pages/statements/AllStatePage";
 import RolesManagementPage from "./pages/RolesManagementPage";
+import UsersListPage from "./pages/UsersListPage";
 import Statistics from "./pages/Statistics";
-import Review from "./pages/AdminReviewPage";
-import CreateDeputationPage from './pages/CreateDeputationPage';
+import Review from "./pages/procedures/AdminReviewPage";
+import CreateDeputationPage from './pages/procedures/CreateDeputationPage';
 import ChangePassword from "./pages/ChangePassword";
 import UserPermissions from "./pages/UserPermissions";
 import UserPermission from "./pages/UserPermission2";
 import PDFGenerator from "./PdfGenerator";
-import SecondmentPage from "./pages/SecondmentPage";
-import SecondmentPageState from "./pages/SecondmentPageState";
+import SecondmentPage from "./pages/procedures/SecondmentPage";
+import SecondmentPageState from "./pages/statements/SecondmentPageState";
 
 // Contexts
 import { IsLoggedInProvider } from "./contexts/isLoggedinContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
 import { FiltersProvider } from "./contexts/FiltersContext";
+import LeadersListPage from "./pages/LeadersListPage";
+import LoginPage from "./components/LoginPage";
+import LeadersCategories from "./pages/LeadersCategories";
 
 
 // ================= App Wrapper =================
@@ -59,6 +64,9 @@ const App = () => {
 
             <Routes>
               <Route path="/" element={<EmployeeListPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/leaders" element={<LeadersListPage />} />
+              <Route path="/leaders-categories" element={<LeadersCategories />} />
               <Route path="/assignTA" element={<AssistantsPage />} />
               <Route path="/promotion/:employeeId" element={<Promotion />} />
               <Route path="/end_service/:employeeId" element={<EndService />} />
@@ -84,6 +92,7 @@ const App = () => {
               <Route path="/permission" element={<UserPermission />} />
 
               <Route path="/roles" element={<RolesManagementPage />} />
+              <Route path="/users" element={<UsersListPage />} />
               <Route path="/statistics" element={<Statistics />} />
 
               {/* الاعارات */}
@@ -110,6 +119,7 @@ const App = () => {
 // ================= Root =================
 const RootApp = () => (
   <Router>
+    <ScrollToTop />
     <AppWrapper />
   </Router>
 );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/axiosInstance";
 import { useParams ,useLocation ,useNavigate } from "react-router-dom";
-import Select from "react-select"; // ✅ مكتبة الـ Dropdown مع البحث
+import CustomDropdown from "@/components/CustomDropdown";
 
 
 const PromotionPage = () => {
@@ -159,26 +159,11 @@ const PromotionPage = () => {
             <label className="block text-sm font-medium text-gray-600 mb-1">
                الوظيفة الجديدة
             </label>
-            <Select
-              options={jobCodes}
-              placeholder="اختر  الوظيفة..."
-              isSearchable
-              onChange={(selectedOption) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  new_job_code: selectedOption ? selectedOption.value : "",
-                }))
-              }
-              
-              value={jobCodes.find((option) => option.value === formData.new_job_code) || null}
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderRadius: "0.5rem",
-                  padding: "2px",
-                  borderColor: "#d1d5db",
-                }),
-              }}
+            <CustomDropdown
+              options={[{ value: "", label: "اختر الوظيفة..." }, ...jobCodes]}
+              value={formData.new_job_code || ""}
+              onChange={(val) => setFormData((prev) => ({ ...prev, new_job_code: val }))}
+              placeholder="اختر الوظيفة..."
             />
           </div>
 

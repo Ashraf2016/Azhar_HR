@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axiosInstance from "@/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
-import Logo from "../assets/Logo.png"; 
-
-
+import Logo from "../../assets/Logo.png"; 
+import useRequireAuth from "../../lib/useRequireAuth";
+import { usePermissions } from "../../contexts/PermissionsContext";
 
 const MessagePopup = ({ message, type }) => {
     const isSuccess = type === 'success';
@@ -69,6 +69,8 @@ const DeleteConfirmationModal = ({ onConfirm, onCancel, itemName }) => {
 // ======================================================================
 
 const EmployeePunishmentsPage = () => {
+    useRequireAuth();
+    const { hasPermission } = usePermissions();
     const { employeeID } = useParams();
     const navigate = useNavigate();
 
@@ -161,7 +163,7 @@ const EmployeePunishmentsPage = () => {
     // ------------------------- دوال الحذف -------------------------
     const confirmDelete = (punishment) => {
         setPunishmentToDelete(punishment.id);
-        setPunishmentToDeleteReason(punishment.reasons || punishment.serial_number || 'غير معروف');
+        setPunishmentToDeleteReason(punishment.type || punishment.serial_number || 'غير معروف');
     };
 
     const handleDeletePunishment = async () => {
@@ -315,7 +317,7 @@ const EmployeePunishmentsPage = () => {
                                             <td className="px-3 py-2 border text-center">
                                                 {p.serial_number || "-"}
                                             </td>
-                                            <td className="px-3 py-2 border">{p.reasons || "-"}</td>
+                                            <td className="px-3 py-2 border">{p.type ?? p.reasons ?? "-"}</td>
                                             <td className="px-3 py-2 border">{p.area_name || p.area_code || "-"}</td>
                                             <td className="px-3 py-2 border text-center">
                                                 {p.execution_order || "-"}
@@ -324,16 +326,18 @@ const EmployeePunishmentsPage = () => {
                                                 {formatDate(p.execution_order_date)}
                                             </td>
                                             <td className="px-3 py-2 border">{p.notes || "-"}</td>
+                                            {hasPermission("punishments:update") && (
                                             <td className="px-3 py-2 border text-center print:hidden">
                                                 <button
                                                     onClick={() => handleEditClick(p)}
-                                                    className="text-indigo-600 hover:text-indigo-900 font-medium"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg text-xs transition duration-200 font-semibold"
                                                     title="تعديل"
                                                 >
-                                                    ✏️
+                                                    ✏️ تعديل
                                                 </button>
                                                 
-                                            </td>
+                                            </td>)}
+                                            {hasPermission("punishments:delete") && (
                                             <td className="text-center border print:hidden">
                                                 <button
                                                     onClick={() => confirmDelete(p)}
@@ -342,7 +346,7 @@ const EmployeePunishmentsPage = () => {
                                                 >
                                                     🗑️
                                                 </button>
-                                            </td>
+                                            </td>)}
                                         </tr>
                                     ))
                                 )}
