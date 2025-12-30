@@ -206,14 +206,14 @@ const Sidebar = ({ employeeId, employeeName, currentRank }) => {
               />
             )}
 
-            {role === "مدير النظام" && (
+            {/* {role === "مدير النظام" && (
               <SidebarButton
                 onClick={goToReview}
                 icon={Eye}
                 label="مراجعة القرارات"
                 variant="purple"
               />
-            )}
+            )} */}
 
             {hasPermission("employee:update") && (
               <SidebarButton

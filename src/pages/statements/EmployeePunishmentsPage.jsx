@@ -289,7 +289,6 @@ const EmployeePunishmentsPage = () => {
                                     <th className="px-4 py-2 border text-center">م</th>
                                     <th className="px-4 py-2 border text-center">رقم تسلسلي</th>
                                     <th className="px-4 py-2 border text-center">سبب الجزاء</th>
-                                    <th className="px-4 py-2 border text-center">المنطقة</th>
                                     <th className="px-4 py-2 border text-center">رقم أمر التنفيذ</th>
                                     <th className="px-4 py-2 border text-center">تاريخ أمر التنفيذ</th>
                                     <th className="px-4 py-2 border text-center">ملاحظات</th>
@@ -318,7 +317,6 @@ const EmployeePunishmentsPage = () => {
                                                 {p.serial_number || "-"}
                                             </td>
                                             <td className="px-3 py-2 border">{p.type ?? p.reasons ?? "-"}</td>
-                                            <td className="px-3 py-2 border">{p.area_name || p.area_code || "-"}</td>
                                             <td className="px-3 py-2 border text-center">
                                                 {p.execution_order || "-"}
                                             </td>

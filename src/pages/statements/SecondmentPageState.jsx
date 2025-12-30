@@ -130,7 +130,7 @@ const EmployeeSecondmentsPage = () => {
             <div className="flex justify-end gap-3 mt-6 print:hidden">
                 <button
                     onClick={() => window.print()}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition duration-200 flex items-center"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition duration-200 flex items-center"
                 >
                     <span className="ml-2">🖨️</span> طباعة
                 </button>

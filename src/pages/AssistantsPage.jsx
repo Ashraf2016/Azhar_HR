@@ -20,6 +20,27 @@ const PopupMessage = ({ type, message, onClose }) => {
     );
 };
 
+// Small centered modal used for success/error notifications
+const SmallModal = ({ type, message, onClose }) => {
+    if (!message) return null;
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 bg-black opacity-30" onClick={onClose} />
+            <div className="bg-white p-4 rounded-lg shadow-lg z-10 w-80 text-right">
+                <div className={`text-sm font-medium ${type === "success" ? "text-green-600" : "text-red-600"}`}>
+                    {message}
+                </div>
+                <div className="mt-3 flex justify-end">
+                    <button onClick={onClose} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // Tailwind Animation
 const style = document.createElement("style");
 style.innerHTML = `
@@ -115,10 +136,19 @@ const AssistantsPage = () => {
     // Popup message state
     const [popup, setPopup] = useState({ type: "", message: "" });
 
+    // Submission state to prevent double submits
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // Function to show popup
     const showPopup = (type, message) => {
         setPopup({ type, message });
         setTimeout(() => setPopup({ type: "", message: "" }), 5000);
+    };
+
+    const closePopup = () => {
+        const wasSuccess = popup.type === "success";
+        setPopup({ type: "", message: "" });
+        if (wasSuccess) navigate("/");
     };
 
     // Collapsible sections
@@ -311,8 +341,12 @@ const AssistantsPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+
         if (formData.national_id_number.length !== 14) {
             showPopup("error", "الرقم القومي يجب أن يكون 14 رقم");
+            setIsSubmitting(false);
             return;
         }
 
@@ -328,13 +362,16 @@ const AssistantsPage = () => {
         };
 
         try {
-            await axiosInstance.post("employee/add", payload);
+            const res = await axiosInstance.post("employee/add", payload);
+            const created = res.data;
 
             showPopup("success", "تم إضافة الموظف بنجاح 🎉");
 
-            // setTimeout(() => navigate("/"), 1200);
+            // keep isSubmitting true after success to prevent resubmission
+            // navigation to home will happen when user closes the modal
         } catch (err) {
             showPopup("error", "حدث خطأ أثناء حفظ البيانات ❌");
+            setIsSubmitting(false);
         }
     };
 
@@ -345,6 +382,7 @@ const AssistantsPage = () => {
         <div className="p-6 bg-[#fdfbff] min-h-screen">
             {/* Popup */}
             <PopupMessage type={popup.type} message={popup.message} />
+            <SmallModal type={popup.type} message={popup.message} onClose={closePopup} />
 
             <div className="max-w-5xl mx-auto bg-white shadow-xl p-8 mt-8 rounded-2xl border border-gray-200">
                 <h1 className="text-2xl font-bold mb-6 text-center text-indigo-700">
@@ -403,8 +441,8 @@ const AssistantsPage = () => {
                                  type="date"
                                  name="birth_date"
                                  value={formData.birth_date ? formData.birth_date.toISOString().split("T")[0] : ""}
-                                 readOnly={true} 
-                                 className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-gray-100 cursor-not-allowed"
+                                 onChange={(e) => handleDateChange("birth_date", e.target.value)}
+                                 className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white-100 cursor-not-allowed"
                              />
                          </FormField>
 
@@ -418,8 +456,8 @@ const AssistantsPage = () => {
                                  required
                              >
                                  <option value="">اختر النوع</option> {/* 💡 القيمة الفارغة تجعل الحقل مطلوباً */}
-                                 <option value="male">ذكر</option>
-                                 <option value="female">انثى</option>
+                                 <option value="ذكر">ذكر</option>
+                                 <option value="أنثى">انثى</option>
                              </select>
                         </FormField>
 
@@ -719,15 +757,15 @@ const AssistantsPage = () => {
 
 
                         {/* حقول غير مطلوبة */}
-                        <FormField label="كود التخصص">
+                        {/* <FormField label="كود التخصص">
                             <input name="specialization_code" value={formData.specialization_code} onChange={handleChange} className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
-                        </FormField>
+                        </FormField> */}
                         <FormField label="التخصص">
                             <input name="specialization_name" value={formData.specialization_name} onChange={handleChange} className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
                         </FormField>
-                        <FormField label="موقع الكلية">
+                        {/* <FormField label="موقع الكلية">
                             <input name="faculty_location" value={formData.faculty_location} onChange={handleChange} className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
-                        </FormField>
+                        </FormField> */}
                         <FormField label="حالة العمل">
                             <input name="work_status" value={formData.work_status} onChange={handleChange} className="p-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
                         </FormField>
@@ -735,8 +773,12 @@ const AssistantsPage = () => {
 
 
 
-                    <button type="submit" className="w-full p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 mt-6 font-semibold transition duration-200 shadow-md">
-                        💾 حفظ بيانات عضو هيئة التدريس
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={`w-full p-3 bg-indigo-600 text-white rounded-xl mt-6 font-semibold transition duration-200 shadow-md ${isSubmitting ? 'opacity-50 cursor-not-allowed hover:bg-indigo-600' : 'hover:bg-indigo-700'}`}
+                    >
+                        {isSubmitting ? 'جاري الحفظ...' : '💾 حفظ بيانات عضو هيئة التدريس'}
                     </button>
 
                 </form>
