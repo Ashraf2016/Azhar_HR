@@ -31,7 +31,8 @@ import UserPermission from "./pages/UserPermission2";
 import PDFGenerator from "./PdfGenerator";
 import SecondmentPage from "./pages/procedures/SecondmentPage";
 import SecondmentPageState from "./pages/statements/SecondmentPageState";
-
+import FacultyManagementPage from "./pages/FacultyManagementPage";
+import DepartmentManagementPage from "./pages/DepartmentManagementPage";
 // Contexts
 import { IsLoggedInProvider } from "./contexts/isLoggedinContext";
 import { PermissionsProvider } from "./contexts/PermissionsContext";
@@ -75,7 +76,11 @@ const App = () => {
               <Route path="/profile/:employeeId" element={<EmployeeProfilePage />} />
               <Route path="/pdf" element={<PDFGenerator />} />
               <Route path="/createUser" element={<CreateUserPage />} />
-
+              {/* الكليات */}
+              <Route path="/faculties" element={<FacultyManagementPage />} />
+              {/* الاقسام  */}
+              <Route path="/departments" element={<DepartmentManagementPage/>}/>
+                            
               <Route path="/holidays/:employeeID" element={<EmployeeHolidaysPage />} />
               <Route path="/review/:employeeID" element={<Review />} />
 

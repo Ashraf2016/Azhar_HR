@@ -317,6 +317,233 @@
 
 
 
+// import { useState } from "react";
+// import {
+//   ChevronLeft,
+//   ChevronDown,
+//   Menu,
+//   X,
+//   LogOut,
+//   User,
+// } from "lucide-react";
+// import Logo from "../assets/Logo.png";
+// import { useIsLoggedIn } from "../contexts/isLoggedinContext";
+// import { usePermissions } from "../contexts/PermissionsContext";
+
+// const Navbar = ({ onLogoClick }) => {
+//   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+//   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+//   const [showLoginModal, setShowLoginModal] = useState(false);
+//   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+//   const { isLoggedIn, setIsLoggedIn } = useIsLoggedIn();
+//   const { permissions, role } = usePermissions(); // role و permissions من context
+  
+//   const username = localStorage.getItem("username");
+
+//   const hasPermission = (perm) => permissions?.includes(perm);
+//   const isSystemAdmin = role === "مدير النظام";
+
+//   const handleLogout = () => {
+//     localStorage.clear();
+//     setIsLoggedIn(false);
+//     window.location.href = "/";
+//   };
+
+//   const handleProtectedLink = (e, path) => {
+//     if (!isLoggedIn) {
+//       e.preventDefault();
+//       setShowLoginModal(true);
+//     } else {
+//       window.location.href = path;
+//     }
+//   };
+
+//   return (
+//     <>
+//       <nav className="bg-blue-900 text-white shadow-lg print:hidden" dir="rtl">
+//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+//           <div className="flex justify-between items-center h-16">
+
+//             {/* Logo */}
+//             <div className="flex items-center cursor-pointer" onClick={onLogoClick}>
+//               <img src={Logo} alt="Logo" className="w-14 h-14 rounded-full border-2" />
+//               <span className="text-xl font-bold mr-3">جامعة الأزهر الشريف</span>
+//             </div>
+
+//             {/* Desktop Links */}
+//             <div className="hidden md:flex items-center gap-6">
+//               <a
+//                 href="/"
+//                 onClick={(e) => handleProtectedLink(e, "/")}
+//                 className="hover:bg-blue-800 px-3 py-2 rounded-md"
+//               >
+//                 الرئيسية
+//               </a>
+
+//               <a
+//                 href="/leaders-categories"
+//                 onClick={(e) => handleProtectedLink(e, "/leaders-categories")}
+//                 className="hover:bg-blue-800 px-3 py-2 rounded-md"
+//               >
+//                 الإدارة
+//               </a>
+
+//               {role === "مدير النظام" && (
+//               <div className="relative">
+//                 <button
+//                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+//                   className="flex items-center gap-1 hover:bg-blue-800 px-3 py-2 rounded-md"
+//                 >
+//                   الموظفون
+//                   {isDropdownOpen ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
+//                 </button>
+
+//                 {isDropdownOpen && (
+//                   <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow">
+//                         <a href="/users" className="block px-4 py-2 hover:bg-gray-100">الموظفون</a>
+//                       <a href="/createUser" className="block px-4 py-2 hover:bg-gray-100">
+//                         إنشاء مستخدم جديد
+//                       </a>
+
+//                       <a href="/roles" className="block px-4 py-2 hover:bg-gray-100">
+//                         صلاحيات المستخدم
+//                       </a>
+//                   </div>
+//                 )}
+//               </div>
+//               )}
+
+//               {role === "مدير النظام" && (
+//               <a href="/statistics" onClick={(e) => handleProtectedLink(e, "/")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
+//                 الاحصائيات
+//               </a>)}
+//               {role === "مدير النظام" && (
+//               <a href="/faculties" onClick={(e) => handleProtectedLink(e, "/")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
+//                 الكليات
+//               </a>)}
+//               {role === "مدير النظام" && (
+//               <a href="/departments" onClick={(e) => handleProtectedLink(e, "/")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
+//                 الأقسام
+//               </a>)}
+
+//               {hasPermission("employee:create") && (
+//                 <a href="/assignTA" className="hover:bg-blue-800 px-3 py-2 rounded-md">
+//                   تعيين جديد
+//                 </a>
+//               )}
+
+//               {isLoggedIn && (
+//                 <div className="relative">
+//                   <button
+//                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+//                     className="flex items-center gap-2 bg-blue-800 px-4 py-2 rounded"
+//                   >
+//                     <User size={18} /> {username}
+//                     {isUserMenuOpen ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
+//                   </button>
+
+//                   {isUserMenuOpen && (
+//                     <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded shadow">
+//                       <a href="/change-password" className="block px-4 py-2 hover:bg-gray-100">
+//                         تعديل كلمة المرور
+//                       </a>
+//                       <button
+//                         onClick={handleLogout}
+//                         className="w-full text-right px-4 py-2 text-red-600 hover:bg-gray-100"
+//                       >
+//                         تسجيل الخروج
+//                       </button>
+//                     </div>
+//                   )}
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Mobile Button */}
+//             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden">
+//               {isMobileMenuOpen ? <X /> : <Menu />}
+//             </button>
+//           </div>
+//         </div>
+//       </nav>
+
+//       {/* Mobile Menu */}
+//       {isMobileMenuOpen && (
+//         <div className="md:hidden bg-blue-800 px-4 py-3 space-y-2">
+//           <a
+//             href="/"
+//             onClick={(e) => handleProtectedLink(e, "/")}
+//             className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+//           >
+//             الرئيسية
+//           </a>
+
+//           {role === "مدير النظام" && (
+//           <div>
+//             <button
+//               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+//               className="w-full text-right text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm flex justify-between items-center"
+//             >
+//               الموظفون
+//               {isDropdownOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+//             </button>
+
+//             {isDropdownOpen && (
+//               <div className="pl-4 pr-2 mt-1 space-y-1">
+//                 {hasPermission("user:create") && (
+//                   <a
+//                     href="/createUser"
+//                     className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
+//                   >
+//                     إنشاء مستخدم جديد
+//                   </a>
+//                 )}
+//                 {!isSystemAdmin && (
+//                   <a
+//                     href="/roles"
+//                     className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
+//                   >
+//                     صلاحيات المستخدم
+//                   </a>
+//                 )}
+//               </div>
+//             )}
+//           </div> )}
+
+//           {role === "مدير النظام" && (
+//           <a href="/statistics" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
+//             الاحصائيات
+//           </a>)}
+
+//           {hasPermission("employee:create") && (
+//             <a href="/assignTA" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
+//               تعيين جديد
+//             </a>
+//           )}
+//         </div>
+//       )}
+
+//       {showLoginModal && (
+//         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+//           <div className="bg-white p-6 rounded shadow text-center">
+//             <h2 className="font-bold mb-3">يجب تسجيل الدخول أولاً</h2>
+//             <button
+//               onClick={() => setShowLoginModal(false)}
+//               className="bg-blue-600 text-white px-4 py-2 rounded"
+//             >
+//               إغلاق
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+// };
+
+// export default Navbar;
+
+
 import { useState } from "react";
 import {
   ChevronLeft,
@@ -332,12 +559,13 @@ import { usePermissions } from "../contexts/PermissionsContext";
 
 const Navbar = ({ onLogoClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAcademicDropdownOpen, setIsAcademicDropdownOpen] = useState(false); // حالة القائمة الجديدة
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const { isLoggedIn, setIsLoggedIn } = useIsLoggedIn();
-  const { permissions, role } = usePermissions(); // role و permissions من context
+  const { permissions, role } = usePermissions(); 
   
   const username = localStorage.getItem("username");
 
@@ -390,34 +618,50 @@ const Navbar = ({ onLogoClick }) => {
               </a>
 
               {role === "مدير النظام" && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-1 hover:bg-blue-800 px-3 py-2 rounded-md"
-                >
-                  الموظفون
-                  {isDropdownOpen ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-1 hover:bg-blue-800 px-3 py-2 rounded-md"
+                  >
+                    الموظفون
+                    {isDropdownOpen ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
+                  </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow">
-                        <a href="/users" className="block px-4 py-2 hover:bg-gray-100">الموظفون</a>
-                      <a href="/createUser" className="block px-4 py-2 hover:bg-gray-100">
-                        إنشاء مستخدم جديد
-                      </a>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow z-50">
+                      <a href="/users" className="block px-4 py-2 hover:bg-gray-100">الموظفون</a>
+                      <a href="/createUser" className="block px-4 py-2 hover:bg-gray-100">إنشاء مستخدم جديد</a>
+                      <a href="/roles" className="block px-4 py-2 hover:bg-gray-100">صلاحيات المستخدم</a>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                      <a href="/roles" className="block px-4 py-2 hover:bg-gray-100">
-                        صلاحيات المستخدم
-                      </a>
-                  </div>
-                )}
-              </div>
+              {/* قائمة الهيكل الأكاديمي الجديدة */}
+              {role === "مدير النظام" && (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsAcademicDropdownOpen(!isAcademicDropdownOpen)}
+                    className="flex items-center gap-1 hover:bg-blue-800 px-3 py-2 rounded-md"
+                  >
+                    الهيكل الأكاديمي
+                    {isAcademicDropdownOpen ? <ChevronDown size={16} /> : <ChevronLeft size={16} />}
+                  </button>
+
+                  {isAcademicDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow z-50">
+                      <a href="/faculties" className="block px-4 py-2 hover:bg-gray-100">الكليات</a>
+                      <a href="/departments" className="block px-4 py-2 hover:bg-gray-100">الأقسام</a>
+                    </div>
+                  )}
+                </div>
               )}
 
               {role === "مدير النظام" && (
-              <a href="/statistics" onClick={(e) => handleProtectedLink(e, "/")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
-                الاحصائيات
-              </a>)}
+                <a href="/statistics" onClick={(e) => handleProtectedLink(e, "/statistics")} className="hover:bg-blue-800 px-3 py-2 rounded-md">
+                  الاحصائيات
+                </a>
+              )}
 
               {hasPermission("employee:create") && (
                 <a href="/assignTA" className="hover:bg-blue-800 px-3 py-2 rounded-md">
@@ -436,10 +680,8 @@ const Navbar = ({ onLogoClick }) => {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded shadow">
-                      <a href="/change-password" className="block px-4 py-2 hover:bg-gray-100">
-                        تعديل كلمة المرور
-                      </a>
+                    <div className="absolute right-0 mt-2 w-44 bg-white text-gray-800 rounded shadow z-50">
+                      <a href="/change-password" className="block px-4 py-2 hover:bg-gray-100">تعديل كلمة المرور</a>
                       <button
                         onClick={handleLogout}
                         className="w-full text-right px-4 py-2 text-red-600 hover:bg-gray-100"
@@ -472,41 +714,48 @@ const Navbar = ({ onLogoClick }) => {
           </a>
 
           {role === "مدير النظام" && (
-          <div>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full text-right text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm flex justify-between items-center"
-            >
-              الموظفون
-              {isDropdownOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </button>
+            <div>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full text-right text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm flex justify-between items-center"
+              >
+                الموظفون
+                {isDropdownOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              </button>
+              {isDropdownOpen && (
+                <div className="pl-4 pr-2 mt-1 space-y-1 bg-blue-900 rounded-md">
+                  <a href="/users" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm">الموظفون</a>
+                  <a href="/createUser" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm">إنشاء مستخدم جديد</a>
+                  <a href="/roles" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm">صلاحيات المستخدم</a>
+                </div>
+              )}
+            </div>
+          )}
 
-            {isDropdownOpen && (
-              <div className="pl-4 pr-2 mt-1 space-y-1">
-                {hasPermission("user:create") && (
-                  <a
-                    href="/createUser"
-                    className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
-                  >
-                    إنشاء مستخدم جديد
-                  </a>
-                )}
-                {!isSystemAdmin && (
-                  <a
-                    href="/roles"
-                    className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm"
-                  >
-                    صلاحيات المستخدم
-                  </a>
-                )}
-              </div>
-            )}
-          </div> )}
+          {/* الهيكل الأكاديمي للجوال */}
+          {role === "مدير النظام" && (
+            <div>
+              <button
+                onClick={() => setIsAcademicDropdownOpen(!isAcademicDropdownOpen)}
+                className="w-full text-right text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm flex justify-between items-center"
+              >
+                الهيكل الأكاديمي
+                {isAcademicDropdownOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              </button>
+              {isAcademicDropdownOpen && (
+                <div className="pl-4 pr-2 mt-1 space-y-1 bg-blue-900 rounded-md">
+                  <a href="/faculties" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm">الكليات</a>
+                  <a href="/departments" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm">الأقسام</a>
+                </div>
+              )}
+            </div>
+          )}
 
           {role === "مدير النظام" && (
-          <a href="/statistics" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
-            الاحصائيات
-          </a>)}
+            <a href="/statistics" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
+              الاحصائيات
+            </a>
+          )}
 
           {hasPermission("employee:create") && (
             <a href="/assignTA" className="block text-white hover:bg-blue-700 px-3 py-2 rounded-md">
